@@ -4,7 +4,7 @@
     <groupId>org.easyj</groupId>
     <artifactId>easyj-spring-orm</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>EasyJ Spring-ORM</name>
     <url>http://maven.apache.org</url>
     <build>
@@ -46,12 +46,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>easyj-orm</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.easyj</groupId>
-            <artifactId>orm</artifactId>
-            <version>1.0.0</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
