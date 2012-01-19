@@ -2,10 +2,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.easyj</groupId>
-    <artifactId>easyj-spring-orm</artifactId>
+    <artifactId>easyj-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.1</version>
-    <name>EasyJ Spring-ORM</name>
+    <version>1.0.2</version>
+    <name>EasyJ REST</name>
     <url>http://maven.apache.org</url>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
@@ -23,34 +23,41 @@
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Deps Versions -->
+        <servlet-api.version>2.5</servlet-api.version>
+        <junit.version>4.10</junit.version>
+        <easy-spring.version>${project.version}</easy-spring.version>
+        <easy-orm.version>${project.version}</easy-orm.version>
+        <easy-validation.version>${project.version}</easy-validation.version>
     </properties>
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <version>${servlet-api.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>easyj-spring</artifactId>
-            <version>${project.version}</version>
+            <version>${easy-spring.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>easyj-orm</artifactId>
-            <version>${project.version}</version>
+            <version>${easy-orm.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>easyj-validation</artifactId>
-            <version>${project.version}</version>
+            <version>${easy-validation.version}</version>
         </dependency>
     </dependencies>
 </project>
