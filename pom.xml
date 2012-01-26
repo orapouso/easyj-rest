@@ -4,9 +4,52 @@
     <groupId>org.easyj</groupId>
     <artifactId>easyj-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.2</version>
+    <version>1.1.0-dev</version>
     <name>EasyJ REST</name>
     <url>http://maven.apache.org</url>
+    <dependencies>
+        <!-- Testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+           <groupId>org.glassfish</groupId>
+           <artifactId>javax.servlet</artifactId>
+           <version>3.0.1</version>
+           <scope>test</scope>
+        </dependency>
+        <dependency>
+           <groupId>org.springframework</groupId>
+           <artifactId>spring-test</artifactId>
+           <version>${spring.version}</version>
+           <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>easyj-spring</artifactId>
+            <version>${easy-spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>easyj-orm</artifactId>
+            <version>1.1.0-dev</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>easyj-validation</artifactId>
+            <version>${easy-validation.version}</version>
+        </dependency>
+    </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
@@ -27,37 +70,9 @@
         <!-- Deps Versions -->
         <servlet-api.version>2.5</servlet-api.version>
         <junit.version>4.10</junit.version>
-        <easy-spring.version>${project.version}</easy-spring.version>
-        <easy-orm.version>${project.version}</easy-orm.version>
-        <easy-validation.version>${project.version}</easy-validation.version>
+        <easy-spring.version>1.0.2</easy-spring.version>
+        <easy-orm.version>1.0.2</easy-orm.version>
+        <easy-validation.version>1.0.2</easy-validation.version>
+        <spring.version>3.1.0.RELEASE</spring.version>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>${servlet-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>easyj-spring</artifactId>
-            <version>${easy-spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>easyj-orm</artifactId>
-            <version>${easy-orm.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>easyj-validation</artifactId>
-            <version>${easy-validation.version}</version>
-        </dependency>
-    </dependencies>
 </project>
