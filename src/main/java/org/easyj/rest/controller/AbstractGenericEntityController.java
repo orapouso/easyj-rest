@@ -1,13 +1,10 @@
-package org.easyj.spring.orm.controller;
+package org.easyj.rest.controller;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
-import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import org.easyj.orm.EntityService;
-import org.easyj.orm.jpa.JPAEntityService;
 import org.easyj.spring.view.EasyView;
 import org.easyj.validation.sequences.POSTSequence;
 import org.easyj.validation.sequences.PUTSequence;
@@ -19,9 +16,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-public abstract class AbstractEntityController<T extends Serializable, ID> extends GenericEntityController {
+/*TODO
+ * implement EntityController
+ * abstract persistence layer methods so, each persistence can implement its methods with apropriate service
+ * better response handling using pre-defined methods with HttpStatus
+ * create all correspondent RequestMappings
+ */
+public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends GenericEntityController {
 
-    private Class<T> entityClass;
+    private Class<E> entityClass;
     
     public <T> ModelAndView post(HttpServletResponse response,
             final T entity, BindingResult result) {
@@ -51,10 +54,9 @@ public abstract class AbstractEntityController<T extends Serializable, ID> exten
             bindValidatorErrors(validator.validate(entity, validatorSequence), result);
             if(!result.hasErrors()) {
                 httpResponseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-                retStatus = getService().save(entity);
-                if(EntityService.STATUS_SUCCESS.equals(retStatus)) {
+                retEntity = getService().save(entity);
+                if(retEntity != null) {
                     httpResponseStatus = HttpServletResponse.SC_OK;
-                    retEntity = (T) getService().loadUK(entity);
                     logger.debug("Entity saved: entity[" + entity + "]");
                 } else {
                     if(!EntityService.STATUS_ERROR.equals(retStatus)) {
@@ -84,7 +86,7 @@ public abstract class AbstractEntityController<T extends Serializable, ID> exten
             result.addError(new ObjectError(result.getObjectName(), EntityService.NO_PARAMS_SET + "." + result.getTarget().getClass().getSimpleName()));
             logger.debug("ERROR: Cannot delete entity without params ");
         } else {
-            getService().remove(getEntityClass(), new HashMap<String, Object>(){{put("id", id);}});
+            getService().delete(getEntityClass(), id);
             retStatus = EntityService.STATUS_SUCCESS;
             httpResponseStatus = HttpServletResponse.SC_OK;
             logger.debug("Entity deleted successfully ");
@@ -99,22 +101,22 @@ public abstract class AbstractEntityController<T extends Serializable, ID> exten
     }
 
     @RequestMapping(value="/{id}", method=RequestMethod.GET)
-    public ModelAndView get(HttpServletResponse response, T entity, @PathVariable("id") ID id) {
+    public ModelAndView get(HttpServletResponse response, E entity, @PathVariable("id") ID id) {
         BindingResult result = createBindingResult(entity.getClass());
-        T retEntity = null;
+        E retEntity = null;
 
         if(checkParam("id", id, result)) {
-            retEntity = (T) getService().load(entity.getClass(), id);
+            retEntity = (E) getService().findOne(entity.getClass(), id);
         }
 
         return get(response, retEntity, result);
     }
 
-    public ModelAndView get(HttpServletResponse response, T entity) {
+    public ModelAndView get(HttpServletResponse response, E entity) {
         return get(response, entity, createBindingResult(entity.getClass()));
     }
 
-    public ModelAndView get(HttpServletResponse response, T entity, BindingResult result) {
+    public ModelAndView get(HttpServletResponse response, E entity, BindingResult result) {
         ModelAndView mav = createModelAndView();
         String retStatus = EntityService.STATUS_ERROR;
         int httpResponseStatus = HttpServletResponse.SC_BAD_REQUEST;
@@ -157,26 +159,15 @@ public abstract class AbstractEntityController<T extends Serializable, ID> exten
         return true;
     }
     
-    protected Class<T> getEntityClass() {
+    protected Class<E> getEntityClass() {
         
         if(entityClass == null) {
             ParameterizedType pt = (ParameterizedType) getClass().getGenericSuperclass();
-            entityClass = (Class<T>) pt.getActualTypeArguments()[0];
+            entityClass = (Class<E>) pt.getActualTypeArguments()[0];
         }
         
         return entityClass;
         
-    }
-
-    @Resource(name="JPAEntityService")
-    @Override
-    public void setService(EntityService service) {
-        this.service = (JPAEntityService) service;
-    }
-
-    @Override
-    public JPAEntityService getService() {
-        return (JPAEntityService) this.service;
     }
 
 }

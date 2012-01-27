@@ -1,22 +1,20 @@
-package org.easyj.spring.orm.controller;
+package org.easyj.rest.controller;
 
 import java.util.Set;
 import javax.annotation.Resource;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import org.easyj.orm.EntityService;
-import org.springframework.stereotype.Controller;
+import org.easyj.orm.SingleService;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
-@Controller
 public abstract class GenericEntityController extends GenericController {
 
-    protected EntityService service;
+    protected SingleService service;
 
-    public abstract void setService(EntityService service);
+    public abstract void setService(SingleService service);
 
-    public abstract EntityService getService();
+    public abstract SingleService getService();
 
     @Resource
     protected Validator validator;
