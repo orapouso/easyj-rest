@@ -18,19 +18,19 @@ public abstract class GenericController {
         return new ModelAndView();
     }
 
-    public <T> BindingResult createBindingResult(Class<T> klazz) {
+    protected <E> BindingResult createBindingResult(Class<E> klazz) {
         return new BeanPropertyBindingResult(klazz, StringUtils.uncapitalize(klazz.getSimpleName()));
     }
 
-    protected void configModelAndView(ModelAndView mav, String retStatus, Object data, String viewName) {
-        configModelAndView(mav, retStatus, data, null, viewName);
+    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, String viewName) {
+        return configMAV(mav, retStatus, data, null, viewName);
     }
 
-    protected void configModelAndView(ModelAndView mav, String retStatus, Object data, BindingResult result) {
-        configModelAndView(mav, retStatus, data, result, result.getObjectName());
+    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, BindingResult result) {
+        return configMAV(mav, retStatus, data, result, result.getObjectName());
     }
 
-    protected void configModelAndView(ModelAndView mav, String retStatus, Object data, BindingResult result, String viewName) {
+    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, BindingResult result, String viewName) {
         mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
 
         mav.addObject(EasyView.STATUS, retStatus);
@@ -38,6 +38,8 @@ public abstract class GenericController {
         mav.addObject(EasyView.BINDING_RESULT, result);
 
         mav.setViewName(viewName);
+        
+        return mav;
     }
 
     public Map<Class, List<String>> getExclusions() {

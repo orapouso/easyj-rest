@@ -11,10 +11,10 @@ public interface EntityController<E extends Serializable, ID> {
     
     public ModelAndView put(E entity, HttpServletResponse response, BindingResult result);
     
-    public ModelAndView get(ID primaryKey, HttpServletResponse response, BindingResult result);
+    public ModelAndView delete(ID primaryKey, HttpServletResponse response);
     
-    public ModelAndView delete(E entity, HttpServletResponse response, BindingResult result);
+    public ModelAndView get(ID primaryKey, HttpServletResponse response);
     
-    public ModelAndView getAll(HttpServletResponse response, BindingResult result);
+    public ModelAndView getAll(HttpServletResponse response);
     
 }
