@@ -1,5 +1,6 @@
 package org.easyj.rest.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.easyj.spring.view.EasyView;
@@ -14,36 +15,28 @@ public abstract class GenericController {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public ModelAndView createModelAndView() {
-        return new ModelAndView();
-    }
-
     protected <E> BindingResult createBindingResult(Class<E> klazz) {
         return new BeanPropertyBindingResult(klazz, StringUtils.uncapitalize(klazz.getSimpleName()));
     }
 
-    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, String viewName) {
-        return configMAV(mav, retStatus, data, null, viewName);
+    protected ModelAndView configMAV(Object data) {
+        return configMAV(data, null);
     }
 
-    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, BindingResult result) {
-        return configMAV(mav, retStatus, data, result, result.getObjectName());
-    }
-
-    protected ModelAndView configMAV(ModelAndView mav, String retStatus, Object data, BindingResult result, String viewName) {
-        mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
-
-        mav.addObject(EasyView.STATUS, retStatus);
-        mav.addObject(EasyView.DATA, data);
-        mav.addObject(EasyView.BINDING_RESULT, result);
-
-        mav.setViewName(viewName);
+    protected ModelAndView configMAV(Object data, BindingResult result) {
+        ModelAndView mav = new ModelAndView();
         
+        mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
+        mav.addObject(EasyView.DATA, data);
+        if(result.hasErrors()) {
+            mav.addObject(EasyView.BINDING_RESULT, result);
+        }
+
         return mav;
     }
 
     public Map<Class, List<String>> getExclusions() {
-        return null;
+        return new HashMap<Class, List<String>>();
     };
 
 }

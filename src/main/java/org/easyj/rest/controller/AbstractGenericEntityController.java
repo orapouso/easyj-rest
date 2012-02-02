@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.easyj.orm.EntityService;
+import org.easyj.rest.exceptions.BadRequestException;
+import org.easyj.rest.exceptions.ConflictException;
+import org.easyj.rest.exceptions.ResourceNotFoundException;
 import org.easyj.validation.sequences.POSTSequence;
 import org.easyj.validation.sequences.PUTSequence;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -17,19 +21,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-/*TODO
- * abstract persistence layer methods so, each persistence can implement its methods with apropriate service
- * better response handling using pre-defined methods with HttpStatus
- * create all correspondent RequestMappings
- */
 public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends GenericEntityController implements EntityController<E, ID> {
 
     private Class<E> entityClass;
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute E entity, HttpServletResponse response,
-            BindingResult result) {
+    public ModelAndView post(@ModelAttribute E entity, HttpServletResponse response, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, response, result, POSTSequence.class);
@@ -44,36 +42,23 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
     
     private ModelAndView save(E entity, HttpServletResponse response, BindingResult result, Class validatorSequence) {
-        ModelAndView mav = new ModelAndView();
         E retEntity = null;
-        int httpResponseStatus = HttpServletResponse.SC_BAD_REQUEST;
-        String retStatus = EntityService.STATUS_ERROR;
 
         if(entity == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             result.addError(new ObjectError(result.getObjectName(), EntityService.ENTITY_NULL + "." + result.getTarget().getClass().getSimpleName()));
             logger.debug("ERROR: Cannot save null entity");
         } else {
             bindValidatorErrors(validator.validate(entity, validatorSequence), result);
             if(!result.hasErrors()) {
-                httpResponseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
                 retEntity = persist(entity);
-                if(retEntity != null) {
-                    httpResponseStatus = HttpServletResponse.SC_OK;
-                    logger.debug("Entity saved: entity[" + entity + "]");
-                } else {
-                    if(!EntityService.STATUS_ERROR.equals(retStatus)) {
-                        httpResponseStatus = HttpServletResponse.SC_CONFLICT;
-                    }
-                    result.addError(new ObjectError(result.getObjectName(), retStatus));
-                    logger.debug("Entity not saved: return error[" + retStatus + "]");
-                }
+                logger.debug("Entity saved: entity[" + entity + "]");
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
         }
 
-        configMAV(mav, retStatus, retEntity, result);
-
-        response.setStatus(httpResponseStatus);
-        return mav;
+        return configMAV(retEntity, result);
     }
 
     @Override
@@ -81,24 +66,17 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     public ModelAndView delete(ID primaryKey, HttpServletResponse response) {
         BindingResult result = createBindingResult(getEntityClass());
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
-        ModelAndView mav = new ModelAndView();
-        String retStatus = EntityService.STATUS_ERROR;
-        int httpResponseStatus = HttpServletResponse.SC_BAD_REQUEST;
         E entity = null;
 
         if(!checkParam("id", primaryKey, result)) {
-            result.addError(new ObjectError(result.getObjectName(), EntityService.NO_PARAMS_SET + "." + result.getTarget().getClass().getSimpleName()));
-            logger.debug("ERROR: Cannot delete entity without params ");
+            logger.error("ERROR: Cannot delete entity without params ");
+            throw new BadRequestException();
         } else {
             entity = delete(primaryKey);
-            retStatus = EntityService.STATUS_SUCCESS;
-            httpResponseStatus = HttpServletResponse.SC_OK;
             logger.debug("Entity deleted successfully ");
         }
 
-        configMAV(mav, retStatus, entity, result);
-        response.setStatus(httpResponseStatus);
-        return mav;
+        return configMAV(entity, result);
     }
 
     @Override
@@ -116,23 +94,14 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
     
     public ModelAndView get(E entity, HttpServletResponse response, BindingResult result) {
-        ModelAndView mav = new ModelAndView();
-        String retStatus = EntityService.STATUS_ERROR;
-        int httpResponseStatus = HttpServletResponse.SC_BAD_REQUEST;
-        
-        if(result != null && !result.hasErrors()) {
-            if(entity == null) {
-                retStatus = EntityService.ENTITY_NOT_FOUND;
-            } else {
-                retStatus = EntityService.STATUS_SUCCESS;
-            }
-            httpResponseStatus = HttpServletResponse.SC_OK;
+        if(result != null && result.hasErrors()) {
+            throw new BadRequestException();
+        } else if(entity == null) {
+            throw new ResourceNotFoundException();
         }
 
-        configMAV(mav, retStatus, entity, result);
+        ModelAndView mav = configMAV(entity, result);
 
-        response.setStatus(httpResponseStatus);
-        
         return mav;        
     }
     
@@ -142,18 +111,11 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return getAll(findAll(), response);
     }
     
-    public ModelAndView getAll(List<E> entities, HttpServletResponse response) {
-        ModelAndView mav = new ModelAndView();
-        String retStatus = EntityService.STATUS_ERROR;
-        int httpResponseStatus = HttpServletResponse.SC_OK;
-        
-        configMAV(mav, retStatus, entities, "getAll");
-        
-        response.setStatus(httpResponseStatus);
-        return mav;
+    @RequestMapping(method=RequestMethod.GET)
+    protected ModelAndView getAll(List<E> entities, HttpServletResponse response) {
+        return configMAV(entities);
     }
     
-
     protected void checkParams(Map<String, Object> params, BindingResult result) {
         Object param;
         for(String key : params.keySet()) {
@@ -190,19 +152,52 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
 
     protected E persist(E entity) {
-        return getService().save(entity);
+        try {
+            return getService().save(entity);
+        } catch(IllegalStateException ex ){
+            logger.error( "", ex );
+            throw new ResourceNotFoundException( ex );
+        } catch(IllegalArgumentException ex ){
+            logger.error("", ex);
+            throw new BadRequestException( ex );
+        } catch(DataIntegrityViolationException ex ){ // on unique constraint
+            logger.error( "DataIntegrityViolationException on create operation for: [{}]", entity.getClass().getSimpleName(), ex);
+            throw new ConflictException( ex );
+        }
     }
 
     protected E delete(ID id) {
-        return getService().delete(getEntityClass(), id);
+        try {
+            return getService().delete(getEntityClass(), id);
+        } catch(Exception ex) {
+            logger.error("", ex);
+            throw new BadRequestException();
+        }
     }
 
     protected E findOne(ID primaryKey) {
-        return getService().findOne(getEntityClass(), primaryKey);
+        E entity = null;
+        
+        try {
+            entity = getService().findOne(getEntityClass(), primaryKey);
+        } catch(Exception ex) {
+            logger.error("", ex);
+            throw new BadRequestException();
+        }
+        
+        if(entity == null) {
+            throw new ResourceNotFoundException();
+        }
+        
+        return entity;
     }
 
     protected List<E> findAll() {
-        return getService().findAll(getEntityClass());
-    }
+        try {
+            return getService().findAll(getEntityClass());
+        } catch (Exception ex) {
+            throw new BadRequestException();
+        }
+   }
 
 }
