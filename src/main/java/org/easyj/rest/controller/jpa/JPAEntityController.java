@@ -1,12 +1,11 @@
 package org.easyj.rest.controller.jpa;
 
-import java.io.Serializable;
 import javax.annotation.Resource;
 import org.easyj.orm.SingleService;
 import org.easyj.orm.jpa.SingleJPAEntityService;
-import org.easyj.rest.controller.AbstractGenericEntityController;
+import org.easyj.rest.controller.AbstractEntityController;
 
-public class JPAGenericEntityController <E extends Serializable, ID> extends AbstractGenericEntityController<E, ID> {
+public class JPAEntityController extends AbstractEntityController {
 
     @Resource(name="singleJPAEntityService")
     @Override

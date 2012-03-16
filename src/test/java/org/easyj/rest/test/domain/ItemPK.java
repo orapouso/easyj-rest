@@ -1,4 +1,4 @@
-package org.easyj.rest.domain;
+package org.easyj.rest.test.domain;
 
 import java.io.Serializable;
 import javax.persistence.Embeddable;

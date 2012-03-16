@@ -1,9 +1,7 @@
-package org.easyj.rest.config;
+package org.easyj.rest.test.config;
 
 import java.util.Properties;
-
 import javax.sql.DataSource;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -17,19 +15,21 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableTransactionManagement
-@ComponentScan({"org.easyj.rest.domain"})
+@ComponentScan( { "org.easyj.orm" } )
+@EnableTransactionManagement(proxyTargetClass=true)
 public class PersistenceJPAConfig {
 	
-	private String driverClassName = "org.hsqldb.jdbcDriver";
+	private String driverClassName = "org.hsqldb.jdbc.JDBCDriver";
 	
-	private String url = "jdbc:hsqldb:mem:easyjrest";
+	private String url = "jdbc:hsqldb:mem:easyjtest";
 	
 	private String hibernateDialect = "org.hibernate.dialect.HSQLDialect";
 	
 	private boolean hibernateShowSql = false;
 	
 	private boolean jpaGenerateDdl = true;
+        
+        private String hibernateHbm2ddlAuto = "create-drop";
 	
 	public PersistenceJPAConfig(){
 		super();
@@ -45,7 +45,7 @@ public class PersistenceJPAConfig {
 		
 		final JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter(){
 			{
-				setDatabase( Database.HSQL ); // TODO: comment this out, see if anything fails
+				setDatabase( Database.HSQL );
 				setDatabasePlatform( hibernateDialect );
 				setShowSql( hibernateShowSql );
 				setGenerateDdl( jpaGenerateDdl );
@@ -86,6 +86,7 @@ public class PersistenceJPAConfig {
 		return new Properties(){
 			{
 				// use this to inject additional properties in the EntityManager
+                                setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto);
 			}
 		};
 	}

@@ -1,4 +1,4 @@
-package org.easyj.rest.domain;
+package org.easyj.rest.test.domain;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -19,10 +19,17 @@ public class Bill implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+    private Date dateSell;
+    private String description;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "bill")
     private Set<Item> items;
 
+    public Bill() {}
+    
+    public Bill(Long id) {
+        this.id = id;
+    }
+    
     public Long getId() {
         return id;
     }
@@ -31,12 +38,20 @@ public class Bill implements Serializable {
         this.id = id;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getDateSell() {
+        return dateSell;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDateSell(Date date) {
+        this.dateSell = date;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Set<Item> getItems() {

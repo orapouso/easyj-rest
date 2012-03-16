@@ -1,4 +1,4 @@
-package org.easyj.rest.domain;
+package org.easyj.rest.test.domain;
 
 import java.io.Serializable;
 import javax.persistence.EmbeddedId;
@@ -15,7 +15,7 @@ public class Item implements Serializable {
     private String name;
     private Integer quatity;
     private Integer price;
-    @JoinColumn(name = "id_bill", referencedColumnName = "id", nullable = false)
+    @JoinColumn(insertable=false, updatable=false, name = "id_bill", referencedColumnName = "id", nullable = false)
     @ManyToOne
     private Bill bill;
 
@@ -40,6 +40,14 @@ public class Item implements Serializable {
 
     public void setQuatity(Integer quatity) {
         this.quatity = quatity;
+    }
+
+    public Integer getPrice() {
+        return price;
+    }
+
+    public void setPrice(Integer price) {
+        this.price = price;
     }
 
     public Bill getBill() {

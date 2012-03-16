@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends GenericEntityController implements EntityController<E, ID> {
+public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends AbstractEntityController implements EntityController<E, ID> {
 
     private Class<E> entityClass;
     
@@ -108,12 +108,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     @Override
     @RequestMapping(method=RequestMethod.GET)
     public ModelAndView getAll(HttpServletResponse response) {
-        return getAll(findAll(), response);
-    }
-    
-    @RequestMapping(method=RequestMethod.GET)
-    protected ModelAndView getAll(List<E> entities, HttpServletResponse response) {
-        return configMAV(entities);
+        return configMAV(findAll());
     }
     
     protected void checkParams(Map<String, Object> params, BindingResult result) {
