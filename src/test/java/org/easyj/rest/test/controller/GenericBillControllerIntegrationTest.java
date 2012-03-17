@@ -9,8 +9,9 @@ import org.springframework.http.MediaType;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
+import static org.hamcrest.Matchers.*;
 
-public class BillControllerIntegrationTest {
+public class GenericBillControllerIntegrationTest {
 
     @Test
     public void whenGETBillWithNoId_returnAllBills() throws Exception {
@@ -19,7 +20,8 @@ public class BillControllerIntegrationTest {
                 .build()
                 .perform(get("/billgeneric").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("data"));
+                .andExpect(model().attribute("data", empty()))
+                .andExpect(model().attribute("result", nullValue()));
 
     }
 
