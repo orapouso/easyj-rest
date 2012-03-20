@@ -2,6 +2,8 @@ package org.easyj.rest.test.config;
 
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.easyj.orm.jpa.SingleJPAEntityService;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +17,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@ComponentScan( { "org.easyj.orm" } )
-@EnableTransactionManagement(proxyTargetClass=true)
+//@ComponentScan( { "org.easyj.orm" } )
+//@EnableTransactionManagement(proxyTargetClass=true)
 public class PersistenceJPAConfig {
 	
 	private String driverClassName = "org.hsqldb.jdbc.JDBCDriver";
@@ -31,13 +33,14 @@ public class PersistenceJPAConfig {
         
         private String hibernateHbm2ddlAuto = "create-drop";
 	
-	public PersistenceJPAConfig(){
-		super();
-	}
-	
 	// beans
 	
-	@Bean
+        @Bean
+        public SingleJPAEntityService singleJPAEntityService() {
+            return Mockito.mock(SingleJPAEntityService.class);
+        }
+        
+/*	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(){
 		final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
 		factoryBean.setDataSource( restDataSource() );
@@ -89,6 +92,6 @@ public class PersistenceJPAConfig {
                                 setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto);
 			}
 		};
-	}
+	}*/
 	
 }
