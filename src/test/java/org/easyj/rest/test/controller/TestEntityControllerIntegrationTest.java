@@ -2,7 +2,6 @@ package org.easyj.rest.test.controller;
 
 import java.util.ArrayList;
 import java.util.Date;
-import javax.annotation.Resource;
 import org.easyj.orm.jpa.SingleJPAEntityService;
 import org.easyj.rest.test.config.ApplicationConfig;
 import org.easyj.rest.test.config.PersistenceJPAConfig;
@@ -11,7 +10,6 @@ import org.easyj.rest.test.domain.TestEntity;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,58 +23,47 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.mockito.Mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import org.springframework.test.web.server.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader=AnnotationConfigContextLoader.class, classes={ApplicationConfig.class, WebConfig.class, PersistenceJPAConfig.class})
+@ContextConfiguration(loader=AnnotationConfigContextLoader.class, classes={ApplicationConfig.class, PersistenceJPAConfig.class})
 public class TestEntityControllerIntegrationTest {
 
-    private static MockMvc mvc;
-    
-    @Resource(name="singleJPAEntityService")
-    private SingleJPAEntityService jpaService;
+    @Autowired
+    private ApplicationContext ac;
     
     @Autowired
-    private WebApplicationContext wac;
+    private SingleJPAEntityService singleJPAEntityService;
+    
+    private static MockMvc mvc;
     
     private TestEntity baseEntity = new TestEntity();
         
-/*    @BeforeClass
-    public static void beforeClass() {
-        
-        mvc = annotationConfigSetup(new Class[]{
-            ApplicationConfig.class,
-            PersistenceJPAConfig.class,
-            WebConfig.class
-        }).build();
-        
-    }*/
-    
     @Before
     public void before() {
+        mvc = annotationConfigSetup(WebConfig.class).
+                setParentContext(ac).build();
+        
+        singleJPAEntityService = ac.getBean(SingleJPAEntityService.class);
+
         baseEntity.setId(1l);
         baseEntity.setFirstName("firstName");
         baseEntity.setLastName("lastName");
         baseEntity.setTestDate(new Date());
-        
-        when(jpaService.save(anyObject())).thenReturn(baseEntity);
-        when(jpaService.findAll(TestEntity.class)).thenReturn(new ArrayList<TestEntity>(){{add(new TestEntity(2l));}});
-        //when(jpaService.findOne(TestEntity.class, 15l)).thenThrow(ResourceNotFoundException.class);
-        when(jpaService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
 
-        mvc = MockMvcBuilders.webApplicationContextSetup(wac).build();
-        
+        when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
+        when(singleJPAEntityService.findAll(TestEntity.class)).thenReturn(new ArrayList<TestEntity>());
+        when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
     }
     
     @Test
     public void whenGETEntityWithNoId_returnAllEntities() throws Exception {
-        mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", empty()))
-           .andExpect(model().attribute("result", nullValue()));
-
+           .andExpect(model().attribute("result", nullValue()))
+           .andReturn();
     }
     
     @Test

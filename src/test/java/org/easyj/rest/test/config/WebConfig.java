@@ -15,15 +15,9 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @Configuration
-@ComponentScan( { "org.easyj.rest" } )
+@ComponentScan( { "org.easyj.rest.controller" } )
 @EnableWebMvc
 public class WebConfig extends WebMvcConfigurerAdapter {
-	
-    public WebConfig(){
-            super();
-    }
-
-    // beans
 	
     @Bean
     public InternalResourceViewResolver internalResourceViewResolver() {

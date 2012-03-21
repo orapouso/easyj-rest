@@ -32,6 +32,18 @@
 
         <!-- Testing -->
         <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${org.hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${org.hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
@@ -67,18 +79,6 @@
             <version>${cglib.version}</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${org.hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${org.hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- logging -->
         <dependency>
@@ -87,10 +87,28 @@
             <version>${org.slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${org.slf4j.version}</version>
-            <scope>runtime</scope>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.mail</groupId>
+                    <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.jms</groupId>
+                    <artifactId>jms</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jdmk</groupId>
+                    <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jmx</groupId>
+                    <artifactId>jmxri</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
        
     </dependencies>
@@ -124,10 +142,10 @@
         <!-- Deps Versions -->
         <servlet-api.version>2.5</servlet-api.version>
         <junit.version>4.10</junit.version>
-        <easy-spring.version>1.0.2</easy-spring.version>
+        <easy-spring.version>1.1.0-dev</easy-spring.version>
         <easy-orm.version>1.1.0-dev</easy-orm.version>
         <easy-validation.version>1.0.2</easy-validation.version>
-        <spring.version>3.1.0.RELEASE</spring.version>
+        <spring.version>3.1.1.RELEASE</spring.version>
         <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
 
         <!-- Testing -->
