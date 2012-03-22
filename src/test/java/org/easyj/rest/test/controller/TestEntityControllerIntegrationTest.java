@@ -53,17 +53,24 @@ public class TestEntityControllerIntegrationTest {
         baseEntity.setTestDate(new Date());
 
         when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
-        when(singleJPAEntityService.findAll(TestEntity.class)).thenReturn(new ArrayList<TestEntity>());
+        when(singleJPAEntityService.findAll(TestEntity.class))
+                .thenReturn(new ArrayList<TestEntity>())
+                .thenReturn(new ArrayList<TestEntity>(){{add(baseEntity); add(new TestEntity(2l));}});
         when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
     }
     
     @Test
     public void whenGETEntityWithNoId_returnAllEntities() throws Exception {
-        MvcResult result = mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", empty()))
-           .andExpect(model().attribute("result", nullValue()))
-           .andReturn();
+           .andExpect(model().attribute("result", nullValue()));
+
+        mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
+           .andExpect(status().isOk())
+           .andExpect(model().attribute("data", not(empty())))
+           .andExpect(model().attribute("data", hasSize(2)))
+           .andExpect(model().attribute("result", nullValue()));
     }
     
     @Test
