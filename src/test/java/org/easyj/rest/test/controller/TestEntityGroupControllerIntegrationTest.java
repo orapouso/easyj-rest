@@ -1,31 +1,58 @@
 package org.easyj.rest.test.controller;
 
+import java.util.ArrayList;
+import org.easyj.orm.jpa.SingleJPAEntityService;
 import org.easyj.rest.test.config.ApplicationConfig;
 import org.easyj.rest.test.config.PersistenceJPAConfig;
 import org.easyj.rest.test.config.WebConfig;
+import org.easyj.rest.test.domain.TestEntity;
 import org.easyj.rest.test.domain.TestEntityGroup;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.test.web.server.MockMvc;
+
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import org.junit.BeforeClass;
-import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.MvcResult;
+import static org.mockito.Mockito.*;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader=AnnotationConfigContextLoader.class, classes={ApplicationConfig.class, PersistenceJPAConfig.class})
 public class TestEntityGroupControllerIntegrationTest {
 
+    @Autowired
+    private ApplicationContext ac;
+    
+    @Autowired
+    private SingleJPAEntityService singleJPAEntityService;
+    
     private static MockMvc mvc;
     
-    @BeforeClass
-    public static void beforeClass() {
-        mvc = annotationConfigSetup(new Class[]{
-            ApplicationConfig.class,
-            PersistenceJPAConfig.class,
-            WebConfig.class
-        }).build();
+    private TestEntityGroup baseEntity = new TestEntityGroup();
+        
+    @Before
+    public void before() {
+        mvc = annotationConfigSetup(WebConfig.class).
+                setParentContext(ac).build();
+        
+        singleJPAEntityService = ac.getBean(SingleJPAEntityService.class);
+        
+        baseEntity.setId(1l);
+
+        when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
+        when(singleJPAEntityService.findAll(TestEntityGroup.class))
+                .thenReturn(new ArrayList<TestEntityGroup>())
+                .thenReturn(new ArrayList<TestEntityGroup>(){{add(baseEntity); add(new TestEntityGroup(2l));}});
+        when(singleJPAEntityService.findOne(TestEntityGroup.class, 1l)).thenReturn(baseEntity);
     }
     
     @Test
@@ -39,27 +66,8 @@ public class TestEntityGroupControllerIntegrationTest {
     
     @Test
     public void whenGETMissingEntity_return404() throws Exception {
-        mvc.perform(get("/entitygroup/1").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/entitygroup/15").accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void whenPOSTNewEntity_returnEntityWithId() throws Exception {
-        MvcResult result = mvc.perform(
-                post("/entitygroup")
-               .accept(MediaType.APPLICATION_JSON)
-               .param("name", "name")
-            )
-           .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
-           .andExpect(model().attribute("data", instanceOf(TestEntityGroup.class)))
-           .andReturn();
-        
-        TestEntityGroup returnedEntity = (TestEntityGroup) result.getModelAndView().getModel().get("data");
-        
-        assertThat(returnedEntity.getId(), notNullValue());
-        assertThat(returnedEntity.getId(), greaterThan(0l));
-        
     }
 
 }
