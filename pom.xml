@@ -15,12 +15,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.easyj</groupId>
             <artifactId>easyj-spring</artifactId>
             <version>${easy-spring.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.easyj</groupId>
             <artifactId>easyj-orm</artifactId>
             <version>${easy-orm.version}</version>
         </dependency>
@@ -139,17 +139,6 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>spring-maven-snapshot</id>
-            <name>Springframework Maven Snapshot Repository</name>
-            <url>http://maven.springframework.org/snapshot</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -176,6 +165,34 @@
         <!-- logging -->
         <org.slf4j.version>1.6.4</org.slf4j.version>
     </properties>
+    
+    <profiles>
+        <profile>
+            <id>deploy</id>
+            <build>
+                <defaultGoal>deploy</defaultGoal>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>spring-maven-snapshot</id>
+            <name>Springframework Maven Snapshot Repository</name>
+            <url>http://maven.springframework.org/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>easyj-snapshots</id>
+            <name>EasyJ Maven Snapshot Repository</name>
+            <url>http://orapouso.yourhda.com:8081/nexus/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <repository>
