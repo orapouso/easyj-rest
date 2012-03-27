@@ -5,7 +5,7 @@
     <artifactId>easyj-rest</artifactId>
     <packaging>jar</packaging>
     <version>1.1.0-SNAPSHOT</version>
-    <name>EasyJ REST</name>
+    <name>EasyJ REST ${project.version}</name>
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>
@@ -22,12 +22,24 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>easyj-orm</artifactId>
-            <version>1.1.0-dev</version>
+            <version>${easy-orm.version}</version>
+        </dependency>
+
+        <!-- Validation -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${validation-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>easyj-validation</artifactId>
-            <version>${easy-validation.version}</version>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.0-api</artifactId>
+            <version>${jpa-api.version}</version>
         </dependency>
 
         <!-- Testing -->
@@ -110,8 +122,8 @@
                 </exclusion>
             </exclusions>
         </dependency>
-       
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
@@ -126,6 +138,7 @@
             </plugin>
         </plugins>
     </build>
+
     <repositories>
         <repository>
             <id>spring-maven-snapshot</id>
@@ -136,27 +149,22 @@
             </snapshots>
         </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <url>http://localhost:8081/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <url>http://localhost:8081/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Deps Versions -->
         <servlet-api.version>2.5</servlet-api.version>
         <junit.version>4.10</junit.version>
-        <easy-spring.version>1.1.0-dev</easy-spring.version>
-        <easy-orm.version>1.1.0-dev</easy-orm.version>
-        <easy-validation.version>1.0.2</easy-validation.version>
+        <easy-spring.version>1.1.0-SNAPSHOT</easy-spring.version>
+        <easy-orm.version>1.1.0-SNAPSHOT</easy-orm.version>
         <spring.version>3.1.1.RELEASE</spring.version>
         <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
+
+        <!-- Validation -->
+        <validator.version>4.2.0.Final</validator.version>
+        <jpa-api.version>1.0.1.Final</jpa-api.version>
+        <validation-api.version>1.0.0.GA</validation-api.version>
 
         <!-- Testing -->
         <org.hamcrest.version>1.3.RC2</org.hamcrest.version>
@@ -168,4 +176,15 @@
         <!-- logging -->
         <org.slf4j.version>1.6.4</org.slf4j.version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://orapouso.yourhda.com:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://orapouso.yourhda.com:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

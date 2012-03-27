@@ -10,8 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
-import org.easyj.validation.groups.POSTChecks;
-import org.easyj.validation.groups.PUTChecks;
+import org.easyj.rest.validation.groups.POSTChecks;
+import org.easyj.rest.validation.groups.PUTChecks;
 
 @Entity
 public class TestEntityGroup implements Serializable {
