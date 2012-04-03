@@ -41,7 +41,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return save(entity, response, result, PUTSequence.class);
     }
     
-    private ModelAndView save(E entity, HttpServletResponse response, BindingResult result, Class validatorSequence) {
+    protected ModelAndView save(E entity, HttpServletResponse response, BindingResult result, Class validatorSequence) {
         E retEntity = null;
 
         if(entity == null) {
@@ -147,6 +147,10 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
 
     protected E persist(E entity) {
+        if(entity == null) {
+            throw new BadRequestException("Cannot persist null entity");
+        }
+        
         try {
             return getService().save(entity);
         } catch(IllegalStateException ex){

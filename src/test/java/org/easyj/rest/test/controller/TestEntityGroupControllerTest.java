@@ -30,7 +30,6 @@ public class TestEntityGroupControllerTest {
     @Autowired
     private ApplicationContext ac;
     
-    @Autowired
     private SingleJPAEntityService singleJPAEntityService;
     
     private static MockMvc mvc;
@@ -43,6 +42,7 @@ public class TestEntityGroupControllerTest {
                 setParentContext(ac).build();
         
         singleJPAEntityService = ac.getBean(SingleJPAEntityService.class);
+        reset(singleJPAEntityService);
         
         baseEntity.setId(1l);
     }

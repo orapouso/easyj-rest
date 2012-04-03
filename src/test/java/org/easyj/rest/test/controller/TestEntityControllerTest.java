@@ -47,7 +47,8 @@ public class TestEntityControllerTest {
                 setParentContext(ac).build();
         
         singleJPAEntityService = ac.getBean(SingleJPAEntityService.class);
-
+        reset(singleJPAEntityService);
+        
         baseEntity.setId(1l);
         baseEntity.setFirstName("firstName");
         baseEntity.setLastName("lastName");
@@ -122,6 +123,24 @@ public class TestEntityControllerTest {
         
     }
 
+
+    @Test
+    public void whenPOSTExistingEntity_returnConflict() throws Exception {
+        when(singleJPAEntityService.save(anyObject())).thenThrow(DataIntegrityViolationException.class);
+        
+        String firstName = "firstName";
+        String lastName = "lastName";
+        
+        mvc.perform(
+                post("/entity")
+               .accept(MediaType.APPLICATION_JSON)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param("testDate", "20/12/1980")
+            )
+           .andExpect(status().isConflict());
+    }
+
     @Test
     public void whenPOSTWithMissingNotNullParam_returnBadRequest() throws Exception {
         BindingResult bindingResult;
@@ -190,23 +209,6 @@ public class TestEntityControllerTest {
                //not posting testDate non @NotNull
             )
            .andExpect(status().isOk());
-    }
-
-    @Test
-    public void whenPOSTExistingEntity_returnConflict() throws Exception {
-        when(singleJPAEntityService.save(anyObject())).thenThrow(DataIntegrityViolationException.class);
-        
-        String firstName = "firstName";
-        String lastName = "lastName";
-        
-        mvc.perform(
-                post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
-               .param(firstName, firstName)
-               .param(lastName, lastName)
-               .param("testDate", "20/12/1980")
-            )
-           .andExpect(status().isConflict());
     }
 
 }
