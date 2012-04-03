@@ -145,7 +145,7 @@
         <!-- Deps Versions -->
         <servlet-api.version>2.5</servlet-api.version>
         <junit.version>4.10</junit.version>
-        <easy-spring.version>1.1.0-SNAPSHOT</easy-spring.version>
+        <easy-spring.version>1.1.0</easy-spring.version>
         <easy-orm.version>1.1.0-SNAPSHOT</easy-orm.version>
         <spring.version>3.1.1.RELEASE</spring.version>
         <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
@@ -185,6 +185,14 @@
             </snapshots>
         </repository>
         <repository>
+            <id>easyj-releases</id>
+            <name>EasyJ Maven Snapshot Repository</name>
+            <url>http://nexus.easyj.org/content/repositories/releases</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>easyj-snapshots</id>
             <name>EasyJ Maven Snapshot Repository</name>
             <url>http://nexus.easyj.org/content/repositories/snapshots</url>
@@ -196,11 +204,11 @@
 
     <distributionManagement>
         <repository>
-            <id>releases</id>
+            <id>easy-releases</id>
             <url>http://nexus.easyj.org/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
-            <id>snapshots</id>
+            <id>easy-snapshots</id>
             <url>http://nexus.easyj.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>

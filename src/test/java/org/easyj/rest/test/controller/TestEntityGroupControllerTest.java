@@ -5,7 +5,6 @@ import org.easyj.orm.jpa.SingleJPAEntityService;
 import org.easyj.rest.test.config.ApplicationConfig;
 import org.easyj.rest.test.config.PersistenceJPAConfig;
 import org.easyj.rest.test.config.WebConfig;
-import org.easyj.rest.test.domain.TestEntity;
 import org.easyj.rest.test.domain.TestEntityGroup;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -22,12 +21,11 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class, classes={ApplicationConfig.class, PersistenceJPAConfig.class})
-public class TestEntityGroupControllerIntegrationTest {
+public class TestEntityGroupControllerTest {
 
     @Autowired
     private ApplicationContext ac;
@@ -47,16 +45,14 @@ public class TestEntityGroupControllerIntegrationTest {
         singleJPAEntityService = ac.getBean(SingleJPAEntityService.class);
         
         baseEntity.setId(1l);
-
-        when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
-        when(singleJPAEntityService.findAll(TestEntityGroup.class))
-                .thenReturn(new ArrayList<TestEntityGroup>())
-                .thenReturn(new ArrayList<TestEntityGroup>(){{add(baseEntity); add(new TestEntityGroup(2l));}});
-        when(singleJPAEntityService.findOne(TestEntityGroup.class, 1l)).thenReturn(baseEntity);
     }
     
     @Test
     public void whenGETEntityWithNoId_returnAllEntities() throws Exception {
+        when(singleJPAEntityService.findAll(TestEntityGroup.class))
+                .thenReturn(new ArrayList<TestEntityGroup>())
+                .thenReturn(new ArrayList<TestEntityGroup>(){{add(baseEntity); add(new TestEntityGroup(2l));}});
+
         mvc.perform(get("/entitygroup").accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", empty()))

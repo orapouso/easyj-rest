@@ -149,15 +149,15 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     protected E persist(E entity) {
         try {
             return getService().save(entity);
-        } catch(IllegalStateException ex ){
-            logger.error( "", ex );
-            throw new ResourceNotFoundException( ex );
-        } catch(IllegalArgumentException ex ){
-            logger.error("", ex);
-            throw new BadRequestException( ex );
-        } catch(DataIntegrityViolationException ex ){ // on unique constraint
-            logger.error( "DataIntegrityViolationException on create operation for: [{}]", entity.getClass().getSimpleName(), ex);
-            throw new ConflictException( ex );
+        } catch(IllegalStateException ex){
+            logger.error("Entity not found on update operation for: [{}]", entity, ex);
+            throw new ResourceNotFoundException(ex);
+        } catch(IllegalArgumentException ex) {
+            logger.error("IllegalArgumentException on create operation for: [{}]", entity, ex);
+            throw new BadRequestException(ex);
+        } catch(DataIntegrityViolationException ex){ // on unique constraint
+            logger.error("DataIntegrityViolationException on create operation for: [{}]", entity, ex);
+            throw new ConflictException(ex);
         }
     }
 

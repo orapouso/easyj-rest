@@ -30,7 +30,6 @@ public class TestEntity implements Serializable {
     @NotNull
     @Size(max=15)
     private String lastName;
-    @NotNull
     @Temporal(TemporalType.TIMESTAMP)
     private Date testDate;
     @ManyToOne
