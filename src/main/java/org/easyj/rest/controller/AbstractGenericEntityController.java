@@ -166,16 +166,26 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
 
     protected E delete(ID id) {
-        try {
-            return getService().delete(getEntityClass(), id);
-        } catch(Exception ex) {
-            logger.error("", ex);
-            throw new BadRequestException();
+        E deleted;
+        if(id == null) {
+            throw new BadRequestException("Cannot delete null id");
         }
+        
+        deleted = getService().delete(getEntityClass(), id);
+        
+        if(deleted == null) {
+            throw new ResourceNotFoundException("Deleted resource don't ");
+        }
+
+        return deleted;
     }
 
     protected E findOne(ID primaryKey) {
         E entity = null;
+        
+        if(primaryKey == null) {
+            throw new BadRequestException();
+        }
         
         try {
             entity = getService().findOne(getEntityClass(), primaryKey);
