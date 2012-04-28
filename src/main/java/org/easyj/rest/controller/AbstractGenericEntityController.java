@@ -14,7 +14,7 @@ import org.easyj.rest.validation.sequences.PUTSequence;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,38 +27,39 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute E entity, HttpServletResponse response, BindingResult result) {
+    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletResponse response) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, response, result, POSTSequence.class);
+        return save(entity, result, response);
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute E entity, HttpServletResponse response, BindingResult result) {
+    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, HttpServletResponse response) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
         
-        return save(entity, response, result, PUTSequence.class);
+        return save(entity, result, response);
     }
     
-    protected ModelAndView save(E entity, HttpServletResponse response, BindingResult result, Class validatorSequence) {
-        E retEntity = null;
-
-        if(entity == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            result.addError(new ObjectError(result.getObjectName(), EntityService.ENTITY_NULL + "." + result.getTarget().getClass().getSimpleName()));
-            logger.debug("ERROR: Cannot save null entity");
+    protected ModelAndView save(E entity, BindingResult result, HttpServletResponse response) {
+        if(entity == null || response == null || result == null) {
+            logger.debug("ERROR: Cannot save: some parameter is null entity[{}], response[{}], result[{}], sequence[{}]", 
+                new Object[]{entity, response, result}
+            );
+            throw new BadRequestException();
         } else {
-            bindValidatorErrors(validator.validate(entity, validatorSequence), result);
-            if(!result.hasErrors()) {
-                retEntity = persist(entity);
-                logger.debug("Entity saved: entity[" + entity + "]");
+            if(result.hasErrors()) {
+                logger.debug("ERROR: Cannot save: missing or wrong parameters: ERRORS FOUND[{}]", result.getErrorCount());
+                throw new BadRequestException(result);
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.debug("Entity SAVING: entity[" + entity + "]");
+                E retEntity = persist(entity);
+                logger.debug("Entity SAVED: entity[" + entity + "]");
+
+                return configMAV(retEntity, result);
             }
         }
 
-        return configMAV(retEntity, result);
     }
 
     @Override
