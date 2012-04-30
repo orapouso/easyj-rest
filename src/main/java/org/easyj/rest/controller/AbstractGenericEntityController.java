@@ -3,9 +3,6 @@ package org.easyj.rest.controller;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
-import org.easyj.orm.EntityService;
 import org.easyj.rest.exceptions.BadRequestException;
 import org.easyj.rest.exceptions.ConflictException;
 import org.easyj.rest.exceptions.ResourceNotFoundException;
@@ -13,7 +10,6 @@ import org.easyj.rest.validation.sequences.POSTSequence;
 import org.easyj.rest.validation.sequences.PUTSequence;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,24 +23,24 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletResponse response) {
+    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result, response);
+        return save(entity, result);
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, HttpServletResponse response) {
+    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
         
-        return save(entity, result, response);
+        return save(entity, result);
     }
     
-    protected ModelAndView save(E entity, BindingResult result, HttpServletResponse response) {
-        if(entity == null || response == null || result == null) {
-            logger.debug("ERROR: Cannot save: some parameter is null entity[{}], response[{}], result[{}], sequence[{}]", 
-                new Object[]{entity, response, result}
+    protected ModelAndView save(E entity, BindingResult result) {
+        if(entity == null || result == null) {
+            logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
+                new Object[]{entity, result}
             );
             throw new BadRequestException();
         } else {
@@ -64,7 +60,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
-    public ModelAndView delete(ID primaryKey, HttpServletResponse response) {
+    public ModelAndView delete(ID primaryKey) {
         BindingResult result = createBindingResult(getEntityClass());
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         E entity = null;
@@ -73,7 +69,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             logger.error("ERROR: Cannot delete entity without params ");
             throw new BadRequestException();
         } else {
-            entity = delete(primaryKey);
+            entity = remove(primaryKey);
             logger.debug("Entity deleted successfully ");
         }
 
@@ -82,7 +78,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.GET)
-    public ModelAndView get(@PathVariable("id") ID id, HttpServletResponse response) {
+    public ModelAndView get(@PathVariable("id") ID id) {
         BindingResult result = createBindingResult(getEntityClass());
         
         E entity = null;
@@ -91,10 +87,10 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             entity = findOne(id);
         }
         
-        return get(entity, response, result);
+        return get(entity, result);
     }
     
-    public ModelAndView get(E entity, HttpServletResponse response, BindingResult result) {
+    public ModelAndView get(E entity, BindingResult result) {
         if(result != null && result.hasErrors()) {
             throw new BadRequestException();
         } else if(entity == null) {
@@ -108,32 +104,8 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     
     @Override
     @RequestMapping(method=RequestMethod.GET)
-    public ModelAndView getAll(HttpServletResponse response) {
+    public ModelAndView getAll() {
         return configMAV(findAll());
-    }
-    
-    protected void checkParams(Map<String, Object> params, BindingResult result) {
-        Object param;
-        for(String key : params.keySet()) {
-            param = params.get(key);
-            checkParam(key, param, result);
-        }
-    }
-
-    protected boolean checkParam(String key, Object param, BindingResult result) {
-        if(param == null) {
-            result.addError(new FieldError(result.getObjectName(), key, null, false, null, null, EntityService.NULL_PARAM));
-            return false;
-        }
-        if(param instanceof Number && ((Number) param).intValue() < 0) {
-            result.addError(new FieldError(result.getObjectName(), key, param, false, null, null, EntityService.INVALID_PARAM));
-            return false;
-        }
-        if(param instanceof String && "".equals(((String) param).trim())) {
-            result.addError(new FieldError(result.getObjectName(), key, param, false, null, null, EntityService.INVALID_PARAM));
-            return false;
-        }
-        return true;
     }
     
     protected Class<E> getEntityClass() {
@@ -166,7 +138,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         }
     }
 
-    protected E delete(ID id) {
+    protected E remove(ID id) {
         E deleted;
         if(id == null) {
             throw new BadRequestException("Cannot delete null id");

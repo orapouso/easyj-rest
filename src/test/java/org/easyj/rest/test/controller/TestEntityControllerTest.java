@@ -27,6 +27,7 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+import static org.springframework.test.web.ModelAndViewAssert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader=AnnotationConfigContextLoader.class, classes={ApplicationConfig.class, PersistenceJPAConfig.class})
@@ -55,6 +56,7 @@ public class TestEntityControllerTest {
         baseEntity.setTestDate(new Date());
     }
     
+    /*GET*/
     @Test
     public void whenGETEntityWithNoId_returnAllEntities() throws Exception {
         when(singleJPAEntityService.findAll(TestEntity.class))
@@ -89,12 +91,12 @@ public class TestEntityControllerTest {
            .andExpect(model().attribute("result", nullValue()))
            .andReturn();
 
-        TestEntity returnedEntity = (TestEntity) result.getModelAndView().getModel().get("data");
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
-        assertThat(returnedEntity.getId(), notNullValue());
-        assertThat(returnedEntity.getId(), equalTo(1l));
+        assertThat(returnedEntity, equalTo(baseEntity));
     }
 
+    /*POST*/
     @Test
     public void whenPOSTNewEntity_returnEntityWithId() throws Exception {
         when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
@@ -114,7 +116,7 @@ public class TestEntityControllerTest {
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andReturn();
         
-        TestEntity returnedEntity = (TestEntity) result.getModelAndView().getModel().get("data");
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity.getId(), notNullValue());
         assertThat(returnedEntity.getId(), greaterThan(0l));
@@ -142,13 +144,35 @@ public class TestEntityControllerTest {
     }
 
     @Test
-    public void whenPOSTWithMissingNotNullParam_returnBadRequest() throws Exception {
+    public void whenPOSTWithWrongParams_returnBadRequest() throws Exception {
         BindingResult bindingResult;
         MvcResult result;
         
         String firstName = "firstName";
         String lastName = "lastName";
         
+        result = mvc.perform(
+                post("/entity")
+               .accept(MediaType.APPLICATION_JSON)
+               .param("id", "1")//@Id should be null on POSTs
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param("testDate", "20/12/1980")
+            )
+           .andExpect(status().isBadRequest())
+           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute("data", nullValue()))
+           .andReturn();
+
+        bindingResult = (BindingResult) result.getModelAndView().getModel().get("result");
+        
+        //Validation errors should be bound to result as FieldError
+        assertEquals(false, bindingResult.hasGlobalErrors());
+        assertEquals(true, bindingResult.hasFieldErrors());
+        assertEquals(1, bindingResult.getFieldErrorCount());
+        assertThat(bindingResult.getTarget(), instanceOf(TestEntity.class));
+        assertThat(bindingResult.getFieldError("id"), notNullValue());
+
         result = mvc.perform(
                 post("/entity")
                .accept(MediaType.APPLICATION_JSON)
@@ -195,20 +219,30 @@ public class TestEntityControllerTest {
     }
     
     @Test
-    public void whenPOSTWithMissingNullParam_returnOk() throws Exception {
+    public void whenPOSTWithMissingNullParam_returnEntityWithId() throws Exception {
         when(singleJPAEntityService.save(anyObject())).thenReturn(baseEntity);
 
         String firstName = "firstName";
         String lastName = "lastName";
         
-        mvc.perform(
+        MvcResult result = mvc.perform(
                 post("/entity")
                .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                //not posting testDate non @NotNull
             )
-           .andExpect(status().isOk());
-    }
+            .andExpect(status().isOk())
+           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andReturn();
+        
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        
+        assertThat(returnedEntity.getId(), notNullValue());
+        assertThat(returnedEntity.getId(), greaterThan(0l));
+        assertThat(returnedEntity.getFirstName(), equalTo(firstName));
+        assertThat(returnedEntity.getLastName(), equalTo(lastName));
+   }
 
 }

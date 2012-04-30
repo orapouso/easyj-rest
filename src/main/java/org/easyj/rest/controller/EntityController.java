@@ -1,20 +1,19 @@
 package org.easyj.rest.controller;
 
 import java.io.Serializable;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
 public interface EntityController<E extends Serializable, ID> {
     
-    public ModelAndView post(E entity, BindingResult result, HttpServletResponse response);
+    public ModelAndView post(E entity, BindingResult result);
     
-    public ModelAndView put(E entity, BindingResult result, HttpServletResponse response);
+    public ModelAndView put(E entity, BindingResult result);
     
-    public ModelAndView delete(ID primaryKey, HttpServletResponse response);
+    public ModelAndView delete(ID primaryKey);
     
-    public ModelAndView get(ID primaryKey, HttpServletResponse response);
+    public ModelAndView get(ID primaryKey);
     
-    public ModelAndView getAll(HttpServletResponse response);
+    public ModelAndView getAll();
     
 }
