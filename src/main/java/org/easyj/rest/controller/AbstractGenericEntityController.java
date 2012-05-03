@@ -37,41 +37,14 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return save(entity, result);
     }
     
-    protected ModelAndView save(E entity, BindingResult result) {
-        if(entity == null || result == null) {
-            logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
-                new Object[]{entity, result}
-            );
-            throw new BadRequestException();
-        } else {
-            if(result.hasErrors()) {
-                logger.debug("ERROR: Cannot save: missing or wrong parameters: ERRORS FOUND[{}]", result.getErrorCount());
-                throw new BadRequestException(result);
-            } else {
-                logger.debug("Entity SAVING: entity[" + entity + "]");
-                E retEntity = persist(entity);
-                logger.debug("Entity SAVED: entity[" + entity + "]");
-
-                return configMAV(retEntity, result);
-            }
-        }
-
-    }
-
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
-    public ModelAndView delete(ID primaryKey) {
+    public ModelAndView delete(@PathVariable("id")ID primaryKey) {
         BindingResult result = createBindingResult(getEntityClass());
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
-        E entity = null;
-
-        if(!checkParam("id", primaryKey, result)) {
-            logger.error("ERROR: Cannot delete entity without params ");
-            throw new BadRequestException();
-        } else {
-            entity = remove(primaryKey);
-            logger.debug("Entity deleted successfully ");
-        }
+        
+        E entity = remove(primaryKey);
+        logger.debug("Entity deleted successfully ");
 
         return configMAV(entity, result);
     }
@@ -81,11 +54,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     public ModelAndView get(@PathVariable("id") ID id) {
         BindingResult result = createBindingResult(getEntityClass());
         
-        E entity = null;
-
-        if(checkParam("id", id, result)) {
-            entity = findOne(id);
-        }
+        E entity = findOne(id);
         
         return get(entity, result);
     }
@@ -119,6 +88,27 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         
     }
 
+    protected ModelAndView save(E entity, BindingResult result) {
+        if(entity == null || result == null) {
+            logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
+                new Object[]{entity, result}
+            );
+            throw new BadRequestException();
+        } else {
+            if(result.hasErrors()) {
+                logger.debug("ERROR: Cannot save: missing or wrong parameters: ERRORS FOUND[{}]", result.getErrorCount());
+                throw new BadRequestException(result);
+            } else {
+                logger.debug("Entity SAVING: entity[" + entity + "]");
+                E retEntity = persist(entity);
+                logger.debug("Entity SAVED: entity[" + entity + "]");
+
+                return configMAV(retEntity, result);
+            }
+        }
+
+    }
+
     protected E persist(E entity) {
         if(entity == null) {
             throw new BadRequestException("Cannot persist null entity");
@@ -147,7 +137,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         deleted = getService().delete(getEntityClass(), id);
         
         if(deleted == null) {
-            throw new ResourceNotFoundException("Deleted resource don't ");
+            throw new ResourceNotFoundException("Deleted resource don't");
         }
 
         return deleted;

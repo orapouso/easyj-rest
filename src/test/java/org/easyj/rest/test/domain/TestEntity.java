@@ -81,5 +81,38 @@ public class TestEntity implements Serializable {
     public void setGroup(TestEntityGroup group) {
         this.group = group;
     }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + (this.id != null ? this.id.hashCode() : 0);
+        hash = 53 * hash + (this.firstName != null ? this.firstName.hashCode() : 0);
+        hash = 53 * hash + (this.lastName != null ? this.lastName.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TestEntity other = (TestEntity) obj;
+        
+        boolean idsNull = this.id == null || other.id == null;
+        if(!idsNull) {
+            return this.id.equals(other.id);
+        } else {
+            if ((this.firstName == null) ? (other.firstName != null) : !this.firstName.equals(other.firstName)) {
+                return false;
+            }
+            if ((this.lastName == null) ? (other.lastName != null) : !this.lastName.equals(other.lastName)) {
+                return false;
+            }
+            return true;
+        }
+    }
 
 }
