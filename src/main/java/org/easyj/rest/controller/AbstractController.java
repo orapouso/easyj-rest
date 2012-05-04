@@ -27,21 +27,30 @@ public abstract class AbstractController {
     }
 
     protected ModelAndView configMAV(Object data) {
-        return configMAV(data, null);
+        return configMAV(data, null, null);
     }
 
     protected ModelAndView configMAV(Object data, BindingResult result) {
+        return configMAV(data, result, null);
+    }
+    
+    protected ModelAndView configMAV(Object data, BindingResult result, String viewName) {
         ModelAndView mav = new ModelAndView();
         
-        mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
-        mav.addObject(EasyView.DATA, data);
+        if(data != null) {
+            mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
+            mav.addObject(EasyView.DATA, data);
+        }
         if(result != null && result.hasErrors()) {
             mav.addObject(EasyView.BINDING_RESULT, result);
+        }
+        if(viewName != null && !viewName.isEmpty()) {
+            mav.setViewName(viewName);
         }
 
         return mav;
     }
-
+    
     public Map<Class, List<String>> getExclusions() {
         return new HashMap<Class, List<String>>();
     };

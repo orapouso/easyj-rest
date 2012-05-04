@@ -3,6 +3,7 @@ package org.easyj.rest.controller;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.easyj.rest.annotations.ViewMapping;
 import org.easyj.rest.controller.jpa.JPAGenericEntityController;
 import org.easyj.rest.test.domain.TestEntity;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/entity")
+@ViewMapping(viewName="entity", form="edit")
 public class TestEntityController extends JPAGenericEntityController<TestEntity, Long> {
     
     @InitBinder

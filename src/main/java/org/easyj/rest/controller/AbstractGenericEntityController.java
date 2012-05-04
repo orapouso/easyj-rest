@@ -3,6 +3,7 @@ package org.easyj.rest.controller;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import org.easyj.rest.exceptions.BadRequestException;
 import org.easyj.rest.exceptions.ConflictException;
 import org.easyj.rest.exceptions.ResourceNotFoundException;
@@ -20,26 +21,40 @@ import org.springframework.web.servlet.ModelAndView;
 public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends AbstractEntityController implements EntityController<E, ID> {
 
     private Class<E> entityClass;
+
+    @RequestMapping(value={"/create", "/{id}/edit"})
+    public ModelAndView form(@PathVariable("id") ID primaryKey) {
+        ModelAndView mav;
+
+        Object data = null;
+        if(primaryKey != null) {
+            data = retrieve(primaryKey);
+        }
+        
+        mav = configMAV(data, null, baseViewName + "/" + formViewName);
+        
+        return modelToForm(mav);
+    }
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result) {
+    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result);
+        return save(entity, result, request);
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result) {
+    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
         
-        return save(entity, result);
+        return save(entity, result, request);
     }
     
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
-    public ModelAndView delete(@PathVariable("id")ID primaryKey) {
+    public ModelAndView delete(@PathVariable("id") ID primaryKey, HttpServletRequest request) {
         BindingResult result = createBindingResult(getEntityClass());
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         
@@ -51,22 +66,10 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.GET)
-    public ModelAndView get(@PathVariable("id") ID id) {
-        BindingResult result = createBindingResult(getEntityClass());
+    public ModelAndView get(@PathVariable("id") ID primaryKey) {
+        E entity = retrieve(primaryKey);
         
-        E entity = findOne(id);
-        
-        return get(entity, result);
-    }
-    
-    public ModelAndView get(E entity, BindingResult result) {
-        if(result != null && result.hasErrors()) {
-            throw new BadRequestException();
-        } else if(entity == null) {
-            throw new ResourceNotFoundException();
-        }
-
-        ModelAndView mav = configMAV(entity, result);
+        ModelAndView mav = configMAV(entity);
 
         return mav;        
     }
@@ -88,7 +91,17 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         
     }
 
-    protected ModelAndView save(E entity, BindingResult result) {
+    protected E retrieve(ID primaryKey) {
+        E entity = findOne(primaryKey);
+        
+        if(entity == null) {
+            throw new ResourceNotFoundException();
+        }
+        
+        return entity;
+    }
+    
+    protected ModelAndView save(E entity, BindingResult result, HttpServletRequest request) {
         if(entity == null || result == null) {
             logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
                 new Object[]{entity, result}
@@ -170,6 +183,10 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         } catch (Exception ex) {
             throw new BadRequestException();
         }
-   }
-
+    }
+    
+    protected ModelAndView modelToForm(ModelAndView mav) {
+        return mav;
+    }
+    
 }

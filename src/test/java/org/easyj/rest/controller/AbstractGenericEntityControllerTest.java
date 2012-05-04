@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+import org.springframework.mock.web.MockHttpServletRequest;
 import static org.springframework.test.web.ModelAndViewAssert.*;
 
 /**
@@ -33,7 +34,8 @@ public class AbstractGenericEntityControllerTest {
     private AbstractGenericEntityController<TestEntity, Long> controller;
     private TestEntity baseEntity = new TestEntity();
     private BindingResult mockResult;
-        
+    private MockHttpServletRequest request = new MockHttpServletRequest();
+    
     @Before
     public void before() {
         controller = new AbstractGenericEntityController<TestEntity, Long>() {
@@ -109,33 +111,33 @@ public class AbstractGenericEntityControllerTest {
     /*save*/
     @Test(expected=BadRequestException.class)
     public void whenSaveNullEntity_throwBadRequest() {
-        controller.save(null, mockResult);
+        controller.save(null, mockResult, request);
     }
     
     @Test(expected=BadRequestException.class)
     public void whenSaveNullResult_throwBadRequest() {
-        controller.save(new TestEntity(1l), null);
+        controller.save(new TestEntity(1l), null, request);
     }
     
     @Test(expected=BadRequestException.class)
     public void whenSaveInvalidEntity_throwBadRequest() {
         when(mockResult.hasErrors()).thenReturn(true);
         
-        controller.save(new TestEntity(), mockResult);
+        controller.save(new TestEntity(), mockResult, request);
     }
     
     @Test(expected=ConflictException.class)
     public void whenSaveNewExistingEntity_throwConflict() {
         when(controller.getService().save(any())).thenThrow(DataIntegrityViolationException.class);
         
-        controller.save(new TestEntity(1l), mockResult);
+        controller.save(new TestEntity(1l), mockResult, request);
     }
     
     @Test(expected=BadRequestException.class)
     public void whenSaveInvalidAndNotValidatedEntity_throwBadRequest() {
         when(controller.getService().save(any())).thenThrow(IllegalArgumentException.class);
         
-        controller.save(new TestEntity(), mockResult);
+        controller.save(new TestEntity(), mockResult, request);
     }
 
     @Test
@@ -152,7 +154,7 @@ public class AbstractGenericEntityControllerTest {
         
         when(controller.getService().save(any())).thenReturn(returnEntity);
         
-        ModelAndView mav = controller.save(entity, mockResult);
+        ModelAndView mav = controller.save(entity, mockResult, request);
         
         TestEntity saved = assertAndReturnModelAttributeOfType(mav, "data", TestEntity.class);
         assertEquals(returnEntity, saved);
