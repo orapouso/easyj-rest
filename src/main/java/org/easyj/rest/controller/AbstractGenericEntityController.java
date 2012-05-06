@@ -31,37 +31,60 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             data = retrieve(primaryKey);
         }
         
-        mav = configMAV(data, null, baseViewName + "/" + formViewName);
+        mav = configMAV(data, formViewName);
         
         return modelToForm(mav);
     }
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
+    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result, request);
+        return save(entity, result);
+    }
+
+    @RequestMapping(method=RequestMethod.POST, headers={"accept=text/html,application/html+xml"})
+    public ModelAndView postHTML(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
+        logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
+
+        return save(entity, result, "redirect:" + request.getRequestURI());
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
+    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
-        
-        return save(entity, result, request);
+
+        return save(entity, result);
     }
     
+    @RequestMapping(value="/{id}", method=RequestMethod.PUT, headers={"accept=text/html,application/html+xml"})
+    public ModelAndView putHTML(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id, HttpServletRequest request) {
+        logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
+
+        return save(entity, result, "redirect:" + request.getRequestURI());
+    }
+
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
-    public ModelAndView delete(@PathVariable("id") ID primaryKey, HttpServletRequest request) {
-        BindingResult result = createBindingResult(getEntityClass());
+    public ModelAndView delete(@PathVariable("id") ID primaryKey) {
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         
         E entity = remove(primaryKey);
-        logger.debug("Entity deleted successfully ");
+        logger.debug("Entity deleted successfully");
+        
+        return configMAV(entity);
+    }
 
-        return configMAV(entity, result);
+    @RequestMapping(value="/{id}", method=RequestMethod.DELETE, headers={"accept=text/html,application/html+xml"})
+    public ModelAndView deleteHTML(@PathVariable("id") ID primaryKey) {
+        logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
+        
+        E entity = remove(primaryKey);
+        logger.debug("Entity deleted successfully");
+        
+        return configMAV(entity, entityViewName);
     }
 
     @Override
@@ -74,10 +97,24 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return mav;        
     }
     
+    @RequestMapping(value="/{id}", method=RequestMethod.GET, headers={"accept=text/html,application/html+xml"})
+    public ModelAndView getHTML(@PathVariable("id") ID primaryKey) {
+        E entity = retrieve(primaryKey);
+        
+        ModelAndView mav = configMAV(entity, entityViewName);
+
+        return mav;        
+    }
+    
     @Override
     @RequestMapping(method=RequestMethod.GET)
     public ModelAndView getAll() {
         return configMAV(findAll());
+    }
+    
+    @RequestMapping(method=RequestMethod.GET, headers={"accept=text/html,application/html+xml"})
+    public ModelAndView getAllHTML() {
+        return configMAV(findAll(), listViewName);
     }
     
     protected Class<E> getEntityClass() {
@@ -101,7 +138,11 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return entity;
     }
     
-    protected ModelAndView save(E entity, BindingResult result, HttpServletRequest request) {
+    protected ModelAndView save(E entity, BindingResult result) {
+        return save(entity, result, null);
+    }
+    
+    protected ModelAndView save(E entity, BindingResult result, String viewName) {
         if(entity == null || result == null) {
             logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
                 new Object[]{entity, result}
@@ -116,7 +157,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
                 E retEntity = persist(entity);
                 logger.debug("Entity SAVED: entity[" + entity + "]");
 
-                return configMAV(retEntity, result);
+                return configMAV(retEntity, result, viewName);
             }
         }
 

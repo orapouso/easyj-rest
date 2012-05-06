@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/entity")
-@ViewMapping(viewName="entity", form="edit")
+@ViewMapping(value="entity", form="{base}/edit")
 public class TestEntityController extends JPAGenericEntityController<TestEntity, Long> {
     
     @InitBinder

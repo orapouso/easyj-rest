@@ -34,6 +34,10 @@ public abstract class AbstractController {
         return configMAV(data, result, null);
     }
     
+    protected ModelAndView configMAV(Object data, String viewName) {
+        return configMAV(data, null, viewName);
+    }
+    
     protected ModelAndView configMAV(Object data, BindingResult result, String viewName) {
         ModelAndView mav = new ModelAndView();
         

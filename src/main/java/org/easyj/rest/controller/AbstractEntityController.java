@@ -15,7 +15,9 @@ public abstract class AbstractEntityController extends AbstractController {
 
     protected String entityMapping;
     protected String baseViewName;
-    protected String formViewName = "edit";
+    protected String entityViewName = "{}/entity";
+    protected String formViewName = "{}/form";
+    protected String listViewName = "{}/list";
     
     @PostConstruct
     public void initialize() {
@@ -27,13 +29,22 @@ public abstract class AbstractEntityController extends AbstractController {
                 baseViewName = entityMapping.substring(1);
             }
         } else {
-            if(!annon.viewName().isEmpty()) {
-                baseViewName = annon.viewName();
+            if(!annon.value().isEmpty()) {
+                baseViewName = annon.value();
             }
             if(!annon.form().isEmpty()) {
                 formViewName = annon.form();
             }
+            if(!annon.entity().isEmpty()) {
+                entityViewName = annon.entity();
+            }
+            if(!annon.list().isEmpty()) {
+                listViewName = annon.list();
+            }
         }
+        formViewName = formViewName.replace("{}", baseViewName);
+        entityViewName = entityViewName.replace("{}", baseViewName);
+        listViewName = listViewName.replace("{}", baseViewName);
     }
     
 }

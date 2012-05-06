@@ -8,7 +8,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ViewMapping {
-    String viewName() default "";
+    String value() default "";
     
-    String form() default "";
+    String entity() default "{}/entity";
+    
+    String form() default "{}/form";
+
+    String list() default "{}/list";
 }
