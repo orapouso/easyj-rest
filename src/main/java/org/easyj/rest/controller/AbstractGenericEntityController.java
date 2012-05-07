@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2009-2012 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package org.easyj.rest.controller;
 
 import java.io.Serializable;
@@ -18,6 +34,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Generic controller class to be implemented with concrete {@code @Entities}
+ * 
+ * This class should provide basic CRUD funcionality with little or no
+ * configuration needed
+ * 
+ * @author Rafael Raposo
+ * @since 1.1.0
+ */
 public abstract class AbstractGenericEntityController<E extends Serializable, ID> extends AbstractEntityController implements EntityController<E, ID> {
 
     private Class<E> entityClass;
