@@ -16,9 +16,13 @@
 
 package org.easyj.rest.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import org.easyj.orm.SingleService;
+import org.easyj.rest.annotations.EntityValidator;
 import org.easyj.rest.annotations.ViewMapping;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -37,38 +41,143 @@ public abstract class AbstractEntityController extends AbstractController {
 
     public abstract SingleService getService();
 
-    protected String entityMapping;
-    protected String baseViewName;
-    protected String entityViewName = "{}/entity";
-    protected String formViewName = "{}/form";
-    protected String listViewName = "{}/list";
+    private String entityMapping;
+    private String baseViewName;
+    private String entityViewName = "{}/entity";
+    private String editViewName = "{}/form";
+    private String createViewName = "{edit}";
+    private String listViewName = "{}/list";
+    private String postViewName = "";
+    private String putViewName = "";
+    private String deleteViewName = "";
+    private String getViewName = "";
+    
+    private List<Validator> validators;
     
     @PostConstruct
     public void initialize() {
-        entityMapping = this.getClass().getAnnotation(RequestMapping.class).value()[0];
+        initializeViewMapping();
+        initializeValidators();
+    }
+    
+    private void initializeViewMapping() {
+        if(!getClass().isAnnotationPresent(RequestMapping.class)) return;
         
-        ViewMapping annon = this.getClass().getAnnotation(ViewMapping.class);
+        entityMapping = getClass().getAnnotation(RequestMapping.class).value()[0];
+        
+        ViewMapping annon = getClass().getAnnotation(ViewMapping.class);
         if(annon == null) {
-            if(entityMapping.charAt(0) == '/') {
-                baseViewName = entityMapping.substring(1);
+            if(getEntityMapping().charAt(0) == '/') {
+                baseViewName = getEntityMapping().substring(1);
             }
         } else {
-            if(!annon.value().isEmpty()) {
+            if(!annon.value().equals("#ROOT")) {
                 baseViewName = annon.value();
+            } else {
+                baseViewName = getEntityMapping().substring(1);
             }
-            if(!annon.form().isEmpty()) {
-                formViewName = annon.form();
+            
+            if(!annon.edit().isEmpty()) {
+                editViewName = annon.edit();
             }
+            
+            if(!annon.create().isEmpty()) {
+                createViewName = annon.create();
+            }
+            
             if(!annon.entity().isEmpty()) {
                 entityViewName = annon.entity();
             }
+            
             if(!annon.list().isEmpty()) {
                 listViewName = annon.list();
             }
+            
+            if(annon.post().isEmpty()) {
+                postViewName = "redirect:" + getEntityMapping();
+            } else {
+                postViewName = annon.post();
+            }
+            
+            if(annon.put().isEmpty()) {
+                putViewName = "redirect:" + getEntityMapping() + "/{id}";
+            } else {
+                putViewName = annon.put();
+            }
+            
+            if(annon.delete().isEmpty()) {
+                deleteViewName = "redirect:" + getEntityMapping();
+            } else {
+                deleteViewName = annon.delete();
+            }
+            
+            if(!annon.get().isEmpty()) {
+                getViewName = getEntityViewName();
+            } else {
+                getViewName = annon.get();
+            }
         }
-        formViewName = formViewName.replace("{}", baseViewName);
-        entityViewName = entityViewName.replace("{}", baseViewName);
-        listViewName = listViewName.replace("{}", baseViewName);
+        editViewName = getEditViewName().replace("{}", getBaseViewName());
+        createViewName = getCreateViewName().replace("{}", getBaseViewName()).replace("{edit}", editViewName);
+        entityViewName = getEntityViewName().replace("{}", getBaseViewName());
+        listViewName = getListViewName().replace("{}", getBaseViewName());
+    }
+    
+    private void initializeValidators() {
+        validators = new ArrayList<Validator>();
+
+        if(!getClass().isAnnotationPresent(EntityValidator.class)) return;
+        
+        Class<? extends Validator>[] validatorsClasses = getClass().getAnnotation(EntityValidator.class).validators();
+        for(Class<? extends Validator> val : validatorsClasses) {
+            try {
+                validators.add(val.newInstance());
+            } catch (Exception ex) {}
+        }
+    }
+    
+    public List<Validator> getValidators() {
+        return validators;
+    }
+
+    public String getEntityMapping() {
+        return entityMapping;
+    }
+
+    public String getBaseViewName() {
+        return baseViewName;
+    }
+
+    public String getEntityViewName() {
+        return entityViewName;
+    }
+
+    public String getEditViewName() {
+        return editViewName;
+    }
+
+    public String getCreateViewName() {
+        return createViewName;
+    }
+
+    public String getListViewName() {
+        return listViewName;
+    }
+
+    public String getPostViewName() {
+        return postViewName;
+    }
+
+    public String getPutViewName() {
+        return putViewName;
+    }
+
+    public String getDeleteViewName() {
+        return deleteViewName;
+    }
+
+    public String getGetViewName() {
+        return getViewName;
     }
     
 }

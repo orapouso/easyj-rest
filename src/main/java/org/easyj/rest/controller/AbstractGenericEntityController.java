@@ -26,7 +26,9 @@ import org.easyj.rest.exceptions.ResourceNotFoundException;
 import org.easyj.rest.validation.sequences.POSTSequence;
 import org.easyj.rest.validation.sequences.PUTSequence;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,8 +49,15 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
 
     private Class<E> entityClass;
 
-    @RequestMapping(value={"/create", "/{id}/edit"})
-    public ModelAndView form(@PathVariable("id") ID primaryKey) {
+    @RequestMapping(value="/create", produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView create() throws InstantiationException, IllegalAccessException {
+        ModelAndView mav = configMAV(getEntityClass().newInstance(), getCreateViewName());
+        
+        return modelToForm(mav);
+    }
+    
+    @RequestMapping("/{id}/edit")
+    public ModelAndView edit(@PathVariable("id") ID primaryKey) throws InstantiationException, IllegalAccessException {
         ModelAndView mav;
 
         Object data = null;
@@ -56,39 +65,39 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             data = retrieve(primaryKey);
         }
         
-        mav = configMAV(data, formViewName);
+        mav = configMAV(data, getEditViewName());
         
         return modelToForm(mav);
     }
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result) {
+    public ModelAndView post(@ModelAttribute("data") @Validated(POSTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, result);
     }
 
-    @RequestMapping(method=RequestMethod.POST, headers={"accept=text/html,application/html+xml"})
-    public ModelAndView postHTML(@ModelAttribute @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
+    @RequestMapping(method=RequestMethod.POST, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView postHTML(@ModelAttribute("data") @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result, "redirect:" + request.getRequestURI());
+        return save(entity, result, getPostViewName());
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result) {
+    public ModelAndView put(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, result);
     }
     
-    @RequestMapping(value="/{id}", method=RequestMethod.PUT, headers={"accept=text/html,application/html+xml"})
-    public ModelAndView putHTML(@ModelAttribute @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id, HttpServletRequest request) {
+    @RequestMapping(value="/{id}", method=RequestMethod.PUT, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView putHTML(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id, HttpServletRequest request) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result, "redirect:" + request.getRequestURI());
+        return save(entity, result, getPutViewName().replace("{id}", id.toString()));
     }
 
     @Override
@@ -102,14 +111,14 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return configMAV(entity);
     }
 
-    @RequestMapping(value="/{id}", method=RequestMethod.DELETE, headers={"accept=text/html,application/html+xml"})
+    @RequestMapping(value="/{id}", method=RequestMethod.DELETE, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
     public ModelAndView deleteHTML(@PathVariable("id") ID primaryKey) {
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         
         E entity = remove(primaryKey);
         logger.debug("Entity deleted successfully");
         
-        return configMAV(entity, entityViewName);
+        return configMAV(entity, getDeleteViewName());
     }
 
     @Override
@@ -122,11 +131,11 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return mav;        
     }
     
-    @RequestMapping(value="/{id}", method=RequestMethod.GET, headers={"accept=text/html,application/html+xml"})
+    @RequestMapping(value="/{id}", method=RequestMethod.GET, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
     public ModelAndView getHTML(@PathVariable("id") ID primaryKey) {
         E entity = retrieve(primaryKey);
         
-        ModelAndView mav = configMAV(entity, entityViewName);
+        ModelAndView mav = configMAV(entity, getGetViewName());
 
         return mav;        
     }
@@ -137,9 +146,9 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return configMAV(findAll());
     }
     
-    @RequestMapping(method=RequestMethod.GET, headers={"accept=text/html,application/html+xml"})
+    @RequestMapping(method=RequestMethod.GET, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
     public ModelAndView getAllHTML() {
-        return configMAV(findAll(), listViewName);
+        return configMAV(findAll(), getListViewName());
     }
     
     protected Class<E> getEntityClass() {
@@ -172,11 +181,15 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
                 new Object[]{entity, result}
             );
-            throw new BadRequestException();
+            throw new BadRequestException(configMAV(entity, result, getEditViewName()));
         } else {
+            for(Validator val : getValidators()) {
+                val.validate(entity, result);
+            }
+            
             if(result.hasErrors()) {
                 logger.debug("ERROR: Cannot save: missing or wrong parameters: ERRORS FOUND[{}]", result.getErrorCount());
-                throw new BadRequestException(result);
+                throw new BadRequestException(configMAV(entity, result, getEditViewName()));
             } else {
                 logger.debug("Entity SAVING: entity[" + entity + "]");
                 E retEntity = persist(entity);
@@ -189,8 +202,9 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     }
 
     protected E persist(E entity) {
+        ModelAndView mav = configMAV(entity, getEditViewName());
         if(entity == null) {
-            throw new BadRequestException("Cannot persist null entity");
+            throw new BadRequestException("Cannot persist null entity", mav);
         }
         
         try {
@@ -200,10 +214,10 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
             throw new ResourceNotFoundException(ex);
         } catch(IllegalArgumentException ex) {
             logger.error("IllegalArgumentException on create operation for: [{}]", entity, ex);
-            throw new BadRequestException(ex);
+            throw new BadRequestException(ex, mav);
         } catch(DataIntegrityViolationException ex){ // on unique constraint
             logger.error("DataIntegrityViolationException on create operation for: [{}]", entity, ex);
-            throw new ConflictException(ex);
+            throw new ConflictException(ex, mav);
         }
     }
 

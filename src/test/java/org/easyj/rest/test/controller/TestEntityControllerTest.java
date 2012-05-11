@@ -207,7 +207,7 @@ public class TestEntityControllerTest {
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
-           .andExpect(model().attribute("data", nullValue()))
+           .andExpect(model().attribute("data", not(nullValue())))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -228,7 +228,7 @@ public class TestEntityControllerTest {
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
-           .andExpect(model().attribute("data", nullValue()))
+           .andExpect(model().attribute("data", not(nullValue())))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -250,7 +250,7 @@ public class TestEntityControllerTest {
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
-           .andExpect(model().attribute("data", nullValue()))
+           .andExpect(model().attribute("data", not(nullValue())))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -335,7 +335,7 @@ public class TestEntityControllerTest {
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
-           .andExpect(model().attribute("data", nullValue()))
+           .andExpect(model().attribute("data", not(nullValue())))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -357,7 +357,7 @@ public class TestEntityControllerTest {
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
-           .andExpect(model().attribute("data", nullValue()))
+           .andExpect(model().attribute("data", not(nullValue())))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);

@@ -44,7 +44,7 @@ public @interface ViewMapping {
      * defaults to {@code @RequestMapping} value
      * @return baseViewName
      */
-    String value() default ":ROOT";
+    String value() default "#ROOT";
     
     /**
      * {@code viewName} to be returned on basic {@code GET html} requests<br>
@@ -58,7 +58,14 @@ public @interface ViewMapping {
      * defaults to {@code {}/form}
      * @return form viewName
      */
-    String form() default "{}/form";
+    String edit() default "{}/form";
+
+    /**
+     * {@code viewName} to be returned on requests for editing or creating entities<br>
+     * defaults to {@code {}/form}
+     * @return form viewName
+     */
+    String create() default "{edit}";
 
     /**
      * {@code viewName} to be returned on requests for listing entities<br>
@@ -66,4 +73,32 @@ public @interface ViewMapping {
      * @return list viewName
      */
     String list() default "{}/list";
+    
+    /**
+     * {@code viewName} to be returned on POST requests<br>
+     * defaults to {@code redirect:{entityMapping}} - redirects to GET (list) mapping
+     * @return list viewName
+     */
+    String post() default "";
+    
+    /**
+     * {@code viewName} to be returned on PUT requests<br>
+     * defaults to {@code redirect:{entityMapping}/{id}} - redirects to GET entity mapping
+     * @return list viewName
+     */
+    String put() default "";
+    
+    /**
+     * {@code viewName} to be returned on DELETE requests<br>
+     * defaults to {@code redirect:{entityMapping}} - redirects to GET (list) mapping
+     * @return list viewName
+     */
+    String delete() default "";
+    
+    /**
+     * {@code viewName} to be returned on GET requests<br>
+     * defaults to {@code entity viewName}
+     * @return list viewName
+     */
+    String get() default "";
 }

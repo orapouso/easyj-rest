@@ -16,49 +16,55 @@
 
 package org.easyj.rest.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Exception to be binded to the response with
- * {@code HttpServletResponse} Bad Request status code (400)
+ * Base exception to carry a {@code ModelAndView} from an error
  * 
  * @author Rafael Raposo
  * @since 1.1.0
  */
-@ResponseStatus(value=HttpStatus.BAD_REQUEST)
-public final class BadRequestException extends ModelAndViewException {
+public class ModelAndViewException extends RuntimeException{
 	
-    public BadRequestException() {
+    private ModelAndView mav;
+
+    public ModelAndViewException() {
         super();
     }
-    public BadRequestException(String message, Throwable cause) {
+    public ModelAndViewException(String message, Throwable cause) {
         super(message, cause);
     }
-    public BadRequestException(String message) {
+    public ModelAndViewException(String message) {
         super(message);
     }
-    public BadRequestException(Throwable cause) {
+    public ModelAndViewException(Throwable cause) {
         super(cause);
     }
 
     /*Constructors with specific binding result from any controller with binding errors*/
-    public BadRequestException(ModelAndView mav) {
+    public ModelAndViewException(ModelAndView mav) {
         super();
         setMav(mav);
     }
-    public BadRequestException(String message, Throwable cause, ModelAndView mav) {
+    public ModelAndViewException(String message, Throwable cause, ModelAndView mav) {
         super(message, cause);
         setMav(mav);
     }
-    public BadRequestException(String message, ModelAndView mav) {
+    public ModelAndViewException(String message, ModelAndView mav) {
         super(message);
         setMav(mav);
     }
-    public BadRequestException(Throwable cause, ModelAndView mav) {
+    public ModelAndViewException(Throwable cause, ModelAndView mav) {
         super(cause);
         setMav(mav);
+    }
+
+    public final void setMav(ModelAndView mav) {
+        this.mav = mav;
+    }
+
+    public final ModelAndView getMav() {
+        return mav;
     }
 
 }

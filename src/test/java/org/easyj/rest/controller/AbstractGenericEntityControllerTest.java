@@ -51,7 +51,7 @@ public class AbstractGenericEntityControllerTest {
     private AbstractGenericEntityController<TestEntity, Long> controller;
     private TestEntity baseEntity = new TestEntity();
     private BindingResult mockResult;
-    
+     
     @Before
     public void before() {
         controller = new AbstractGenericEntityController<TestEntity, Long>() {
@@ -66,6 +66,8 @@ public class AbstractGenericEntityControllerTest {
                 return service;
             }
         };
+        
+        controller.initialize();
         
         mockResult = mock(BindingResult.class);
         
