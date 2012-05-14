@@ -99,21 +99,23 @@ public class TestEntityControllerTest {
                 .thenReturn(new ArrayList<TestEntity>())
                 .thenReturn(new ArrayList<TestEntity>(){{add(baseEntity); add(new TestEntity(2l));}});
         
-        mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/entity"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", empty()))
-           .andExpect(model().attribute("result", nullValue()));
+           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(view().name("entity/list"));
 
-        mvc.perform(get("/entity").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/entity"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", not(empty())))
            .andExpect(model().attribute("data", hasSize(2)))
-           .andExpect(model().attribute("result", nullValue()));
+           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(view().name("entity/list"));
     }
     
     @Test
     public void whenGETMissingEntity_return404() throws Exception {
-        mvc.perform(get("/entity/15").accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/entity/15"))
            .andExpect(status().isNotFound());
     }
 
@@ -121,8 +123,9 @@ public class TestEntityControllerTest {
     public void whenGETBindError_returnBadRequest() throws Exception {
         when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
         
-        MvcResult result = mvc.perform(get("/entity/a").accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get("/entity/a"))
            .andExpect(status().isBadRequest())
+           .andExpect(view().name("errors/badrequest"))
            .andReturn();
 
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -137,10 +140,11 @@ public class TestEntityControllerTest {
     public void whenGETExistingEntity_returnEntity() throws Exception {
         when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
         
-        MvcResult result = mvc.perform(get("/entity/1").accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get("/entity/1"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", notNullValue()))
            .andExpect(model().attribute("result", nullValue()))
+           .andExpect(view().name("entity/entity"))
            .andReturn();
 
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
@@ -163,7 +167,6 @@ public class TestEntityControllerTest {
         
         MvcResult result = mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                .param(testDateKey, testDate)
@@ -171,6 +174,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isOk())
            .andExpect(model().attribute("result", nullValue()))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
@@ -184,12 +188,12 @@ public class TestEntityControllerTest {
         
         mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                .param(testDateKey, testDate)
             )
-           .andExpect(status().isConflict());
+           .andExpect(status().isConflict())
+           .andExpect(view().name("entity/edit"));
     }
 
     @Test
@@ -199,7 +203,6 @@ public class TestEntityControllerTest {
         
         result = mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                .param("id", "1")//@Id should be null on POSTs
                .param(firstName, firstName)
                .param(lastName, lastName)
@@ -208,6 +211,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
+           .andExpect(view().name("entity/edit"))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -221,7 +225,6 @@ public class TestEntityControllerTest {
 
         result = mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                //Not posting firstName a @NotNull param
                .param(lastName, lastName)
                .param(testDateKey, testDate)
@@ -229,6 +232,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
+           .andExpect(view().name("entity/edit"))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -243,7 +247,6 @@ public class TestEntityControllerTest {
 
         result = mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                //Not posting lastName a different @NotNull param
                .param(testDateKey, testDate)
@@ -251,6 +254,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
+           .andExpect(view().name("entity/edit"))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -270,7 +274,6 @@ public class TestEntityControllerTest {
 
         MvcResult result = mvc.perform(
                 post("/entity")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                //not posting testDate non @NotNull
@@ -278,6 +281,7 @@ public class TestEntityControllerTest {
             .andExpect(status().isOk())
            .andExpect(model().attribute("result", nullValue()))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
@@ -306,7 +310,6 @@ public class TestEntityControllerTest {
         
         MvcResult result = mvc.perform(
                 put("/entity/1")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                .param(testDateKey, testDate)
@@ -314,6 +317,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isOk())
            .andExpect(model().attribute("result", nullValue()))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andExpect(view().name("redirect:/entity/1"))
            .andReturn();
         
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
@@ -328,7 +332,6 @@ public class TestEntityControllerTest {
         
         result = mvc.perform(
                 put("/entity/1")
-               .accept(MediaType.APPLICATION_JSON)
                //Not posting firstName a @NotNull param
                .param(lastName, lastName)
                .param(testDateKey, testDate)
@@ -336,6 +339,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
+           .andExpect(view().name("entity/edit"))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -350,7 +354,6 @@ public class TestEntityControllerTest {
 
         result = mvc.perform(
                 put("/entity/1")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                //Not posting lastName a different @NotNull param
                .param(testDateKey, testDate)
@@ -358,6 +361,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute("result", not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
+           .andExpect(view().name("entity/edit"))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
@@ -377,7 +381,6 @@ public class TestEntityControllerTest {
 
         MvcResult result = mvc.perform(
                 put("/entity/1")
-               .accept(MediaType.APPLICATION_JSON)
                .param(firstName, firstName)
                .param(lastName, lastName)
                //not posting testDate non @NotNull
@@ -385,6 +388,7 @@ public class TestEntityControllerTest {
            .andExpect(status().isOk())
            .andExpect(model().attribute("result", nullValue()))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andExpect(view().name("redirect:/entity/1"))
            .andReturn();
         
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
@@ -398,11 +402,11 @@ public class TestEntityControllerTest {
 
         MvcResult result = mvc.perform(
                 delete("/entity/1")
-               .accept(MediaType.APPLICATION_JSON)
             )
            .andExpect(status().isOk())
            .andExpect(model().attribute("result", nullValue()))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
+           .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);

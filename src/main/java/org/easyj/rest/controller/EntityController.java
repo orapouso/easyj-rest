@@ -30,7 +30,7 @@ public interface EntityController<E extends Serializable, ID> {
     
     public ModelAndView post(E entity, BindingResult result);
     
-    public ModelAndView put(E entity, BindingResult result);
+    public ModelAndView put(E entity, BindingResult result, ID id);
     
     public ModelAndView delete(ID primaryKey);
     

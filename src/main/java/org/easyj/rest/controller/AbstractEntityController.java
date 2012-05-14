@@ -110,17 +110,21 @@ public abstract class AbstractEntityController extends AbstractController {
             } else {
                 deleteViewName = annon.delete();
             }
-            
-            if(!annon.get().isEmpty()) {
-                getViewName = getEntityViewName();
-            } else {
-                getViewName = annon.get();
-            }
+
         }
         editViewName = getEditViewName().replace("{}", getBaseViewName());
         createViewName = getCreateViewName().replace("{}", getBaseViewName()).replace("{edit}", editViewName);
         entityViewName = getEntityViewName().replace("{}", getBaseViewName());
         listViewName = getListViewName().replace("{}", getBaseViewName());
+        
+        if(annon != null) {
+            if(annon.get().isEmpty()) {
+                getViewName = getEntityViewName();
+            } else {
+                getViewName = annon.get();
+            }
+        }
+        
     }
     
     private void initializeValidators() {

@@ -19,7 +19,6 @@ package org.easyj.rest.controller;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.easyj.rest.exceptions.BadRequestException;
 import org.easyj.rest.exceptions.ConflictException;
 import org.easyj.rest.exceptions.ResourceNotFoundException;
@@ -75,48 +74,23 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     public ModelAndView post(@ModelAttribute("data") @Validated(POSTSequence.class) E entity, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
-        return save(entity, result);
-    }
-
-    @RequestMapping(method=RequestMethod.POST, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
-    public ModelAndView postHTML(@ModelAttribute("data") @Validated(POSTSequence.class) E entity, BindingResult result, HttpServletRequest request) {
-        logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
-
         return save(entity, result, getPostViewName());
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result) {
-        logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
-
-        return save(entity, result);
-    }
-    
-    @RequestMapping(value="/{id}", method=RequestMethod.PUT, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
-    public ModelAndView putHTML(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id, HttpServletRequest request) {
+    public ModelAndView put(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, result, getPutViewName().replace("{id}", id.toString()));
     }
-
+    
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
     public ModelAndView delete(@PathVariable("id") ID primaryKey) {
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         
         E entity = remove(primaryKey);
-        logger.debug("Entity deleted successfully");
-        
-        return configMAV(entity);
-    }
-
-    @RequestMapping(value="/{id}", method=RequestMethod.DELETE, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
-    public ModelAndView deleteHTML(@PathVariable("id") ID primaryKey) {
-        logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
-        
-        E entity = remove(primaryKey);
-        logger.debug("Entity deleted successfully");
         
         return configMAV(entity, getDeleteViewName());
     }
@@ -124,15 +98,6 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.GET)
     public ModelAndView get(@PathVariable("id") ID primaryKey) {
-        E entity = retrieve(primaryKey);
-        
-        ModelAndView mav = configMAV(entity);
-
-        return mav;        
-    }
-    
-    @RequestMapping(value="/{id}", method=RequestMethod.GET, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
-    public ModelAndView getHTML(@PathVariable("id") ID primaryKey) {
         E entity = retrieve(primaryKey);
         
         ModelAndView mav = configMAV(entity, getGetViewName());
@@ -143,11 +108,6 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     @Override
     @RequestMapping(method=RequestMethod.GET)
     public ModelAndView getAll() {
-        return configMAV(findAll());
-    }
-    
-    @RequestMapping(method=RequestMethod.GET, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
-    public ModelAndView getAllHTML() {
         return configMAV(findAll(), getListViewName());
     }
     
@@ -230,9 +190,11 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         deleted = getService().delete(getEntityClass(), id);
         
         if(deleted == null) {
-            throw new ResourceNotFoundException("Deleted resource don't");
+            throw new ResourceNotFoundException("Resource to be deleted doesn't exists");
         }
 
+        logger.debug("Entity deleted successfully");
+        
         return deleted;
     }
 

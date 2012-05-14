@@ -113,6 +113,6 @@ public abstract class AbstractController {
         
         result.addError(new FieldError("param.bind", e.getRequiredType().getSimpleName(), e.getValue(), true, null, null, "error.param.bind.type"));
         
-        return configMAV(null, result);
+        return configMAV(null, result, "errors/badrequest");
     }
 }
