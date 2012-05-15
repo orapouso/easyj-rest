@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -65,13 +66,22 @@ public abstract class AbstractController {
     protected ModelAndView configMAV(Object data, BindingResult result, String viewName) {
         ModelAndView mav = new ModelAndView();
         
+        if(result != null && result.hasErrors()) {
+            String resultModel = EasyView.BINDING_RESULT;
+            for(String modelKey : result.getModel().keySet()) {
+                if(result.getModel().get(modelKey) instanceof Errors) {
+                    resultModel = modelKey;
+                    break;
+                }
+            }
+            mav.addObject(resultModel, result);
+        }
+        
         if(data != null) {
             mav.addObject(EasyView.PROPERTY_EXCLUSIONS, getExclusions());
             mav.addObject(EasyView.DATA, data);
         }
-        if(result != null && result.hasErrors()) {
-            mav.addObject(EasyView.BINDING_RESULT, result);
-        }
+        
         if(viewName != null && !viewName.isEmpty()) {
             mav.setViewName(viewName);
         }

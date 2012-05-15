@@ -19,12 +19,12 @@ package org.easyj.rest.test.controller;
 import java.util.ArrayList;
 import java.util.Date;
 import org.easyj.orm.jpa.SingleJPAEntityService;
+import org.easyj.rest.controller.TestEntityController;
 import org.easyj.rest.test.config.ApplicationConfig;
 import org.easyj.rest.test.config.PersistenceJPAConfig;
 import org.easyj.rest.test.config.WebConfig;
 import org.easyj.rest.test.domain.TestEntity;
 import org.junit.Test;
-import org.springframework.http.MediaType;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,6 +71,8 @@ public class TestEntityControllerTest {
     private String lastName = "lastName";
     private String testDateKey = "testDate";
     private String testDate = "20/12/1980";
+    
+    private final String BINDING_RESULT_MODEL_NAME = BindingResult.MODEL_KEY_PREFIX + "data";
         
     @Before
     public void before() {
@@ -102,14 +104,14 @@ public class TestEntityControllerTest {
         mvc.perform(get("/entity"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", empty()))
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, nullValue()))
            .andExpect(view().name("entity/list"));
 
         mvc.perform(get("/entity"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", not(empty())))
            .andExpect(model().attribute("data", hasSize(2)))
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, nullValue()))
            .andExpect(view().name("entity/list"));
     }
     
@@ -128,7 +130,7 @@ public class TestEntityControllerTest {
            .andExpect(view().name("errors/badrequest"))
            .andReturn();
 
-        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BindingResult.MODEL_KEY_PREFIX + "testEntityController", BindingResult.class);
         
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -143,9 +145,12 @@ public class TestEntityControllerTest {
         MvcResult result = mvc.perform(get("/entity/1"))
            .andExpect(status().isOk())
            .andExpect(model().attribute("data", notNullValue()))
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(view().name("entity/entity"))
            .andReturn();
+
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
 
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
@@ -172,11 +177,14 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
@@ -209,12 +217,12 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
-           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
            .andExpect(view().name("entity/edit"))
            .andReturn();
 
-        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -230,12 +238,12 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
-           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
            .andExpect(view().name("entity/edit"))
            .andReturn();
 
-        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -252,12 +260,12 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
-           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
            .andExpect(view().name("entity/edit"))
            .andReturn();
         
-        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
 
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -279,11 +287,14 @@ public class TestEntityControllerTest {
                //not posting testDate non @NotNull
             )
             .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
@@ -315,11 +326,14 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andExpect(view().name("redirect:/entity/1"))
            .andReturn();
         
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
@@ -337,12 +351,12 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
-           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
            .andExpect(view().name("entity/edit"))
            .andReturn();
 
-        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -359,12 +373,12 @@ public class TestEntityControllerTest {
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
-           .andExpect(model().attribute("result", not(nullValue())))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", not(nullValue())))
            .andExpect(view().name("entity/edit"))
            .andReturn();
         
-        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), "result", BindingResult.class);
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
 
         //Validation errors should be bound to result as FieldError
         assertEquals(false, bindingResult.hasGlobalErrors());
@@ -386,11 +400,14 @@ public class TestEntityControllerTest {
                //not posting testDate non @NotNull
             )
            .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andExpect(view().name("redirect:/entity/1"))
            .andReturn();
         
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
@@ -404,11 +421,14 @@ public class TestEntityControllerTest {
                 delete("/entity/1")
             )
            .andExpect(status().isOk())
-           .andExpect(model().attribute("result", nullValue()))
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
            .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
            .andExpect(view().name("redirect:/entity"))
            .andReturn();
         
+        BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
         TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));

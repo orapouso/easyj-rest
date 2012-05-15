@@ -43,10 +43,12 @@ public abstract class AbstractEntityController extends AbstractController {
 
     private String entityMapping;
     private String baseViewName;
+
     private String entityViewName = "{}/entity";
     private String editViewName = "{}/form";
     private String createViewName = "{edit}";
     private String listViewName = "{}/list";
+
     private String postViewName = "";
     private String putViewName = "";
     private String deleteViewName = "";
@@ -111,20 +113,32 @@ public abstract class AbstractEntityController extends AbstractController {
                 deleteViewName = annon.delete();
             }
 
-        }
-        editViewName = getEditViewName().replace("{}", getBaseViewName());
-        createViewName = getCreateViewName().replace("{}", getBaseViewName()).replace("{edit}", editViewName);
-        entityViewName = getEntityViewName().replace("{}", getBaseViewName());
-        listViewName = getListViewName().replace("{}", getBaseViewName());
-        
-        if(annon != null) {
             if(annon.get().isEmpty()) {
-                getViewName = getEntityViewName();
+                getViewName = "{entity}";
             } else {
                 getViewName = annon.get();
             }
         }
+
+        editViewName = replaceKeywords(getEditViewName());
+        createViewName = replaceKeywords(getCreateViewName());
+        entityViewName = replaceKeywords(getEntityViewName());
+        listViewName = replaceKeywords(getListViewName());
         
+        postViewName = replaceKeywords(getPostViewName());
+        putViewName = replaceKeywords(getPutViewName());
+        deleteViewName = replaceKeywords(getDeleteViewName());
+        getViewName = replaceKeywords(getGetViewName());
+        
+    }
+    
+    private String replaceKeywords(String viewName) {
+        return viewName
+                .replace("{}", getBaseViewName())
+                .replace("{edit}", getEditViewName())
+                .replace("{create}", getCreateViewName())
+                .replace("{entity}", getEntityViewName())
+                .replace("{list}", getListViewName());
     }
     
     private void initializeValidators() {

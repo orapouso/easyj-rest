@@ -170,13 +170,13 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         try {
             return getService().save(entity);
         } catch(IllegalStateException ex){
-            logger.error("Entity not found on update operation for: [{}]", entity, ex);
+            logger.error("Entity not found on persist operation for: [{}]", entity, ex);
             throw new ResourceNotFoundException(ex);
         } catch(IllegalArgumentException ex) {
-            logger.error("IllegalArgumentException on create operation for: [{}]", entity, ex);
+            logger.error("IllegalArgumentException on persist operation for: [{}]", entity, ex);
             throw new BadRequestException(ex, mav);
         } catch(DataIntegrityViolationException ex){ // on unique constraint
-            logger.error("DataIntegrityViolationException on create operation for: [{}]", entity, ex);
+            logger.error("DataIntegrityViolationException on persist operation for: [{}]", entity, ex);
             throw new ConflictException(ex, mav);
         }
     }
