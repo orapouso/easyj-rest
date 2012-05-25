@@ -45,20 +45,16 @@ public final class BadRequestException extends ModelAndViewException {
 
     /*Constructors with specific binding result from any controller with binding errors*/
     public BadRequestException(ModelAndView mav) {
-        super();
-        setMav(mav);
+        super(mav);
     }
     public BadRequestException(String message, Throwable cause, ModelAndView mav) {
-        super(message, cause);
-        setMav(mav);
+        super(message, cause, mav);
     }
     public BadRequestException(String message, ModelAndView mav) {
-        super(message);
-        setMav(mav);
+        super(message, mav);
     }
     public BadRequestException(Throwable cause, ModelAndView mav) {
-        super(cause);
-        setMav(mav);
+        super(cause, mav);
     }
 
 }

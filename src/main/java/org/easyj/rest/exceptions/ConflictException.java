@@ -17,7 +17,6 @@
 package org.easyj.rest.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -45,20 +44,16 @@ public final class ConflictException extends ModelAndViewException {
     }
 
     public ConflictException(ModelAndView mav) {
-        super();
-        setMav(mav);
+        super(mav);
     }
     public ConflictException(String message, Throwable cause, ModelAndView mav) {
-        super(message, cause);
-        setMav(mav);
+        super(message, cause, mav);
     }
     public ConflictException(String message, ModelAndView mav) {
-        super(message);
-        setMav(mav);
+        super(message, mav);
     }
     public ConflictException(Throwable cause, ModelAndView mav) {
-        super(cause);
-        setMav(mav);
+        super(cause, mav);
     }
 
 }
