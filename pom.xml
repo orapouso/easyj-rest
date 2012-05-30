@@ -157,7 +157,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <junit.version>4.10</junit.version>
         <easy-spring.version>1.1.0</easy-spring.version>
-        <easy-orm.version>1.1.0-SNAPSHOT</easy-orm.version>
+        <easy-orm.version>1.1.0</easy-orm.version>
         <spring.version>3.1.1.RELEASE</spring.version>
         <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
 
