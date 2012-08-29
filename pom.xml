@@ -1,12 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.easyj</groupId>
+        <artifactId>easyj</artifactId>
+        <version>1.2.0</version>
+        <relativePath>../parent</relativePath>
+    </parent>  
+
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.easyj</groupId>
     <artifactId>easyj-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <name>EasyJ REST ${project.version}</name>
-    <url>http://maven.apache.org</url>
+
     <dependencies>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -16,13 +22,19 @@
         </dependency>
         <dependency>
             <groupId>org.easyj</groupId>
-            <artifactId>easyj-spring</artifactId>
-            <version>${easy-spring.version}</version>
+            <artifactId>easyj-orm</artifactId>
+            <version>${easyj-orm.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.easyj</groupId>
-            <artifactId>easyj-orm</artifactId>
-            <version>${easy-orm.version}</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>${json-lib.version}</version>
+            <classifier>jdk15</classifier>
         </dependency>
 
         <!-- Validation -->
@@ -44,45 +56,9 @@
 
         <!-- Testing -->
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${org.hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${org.hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test-mvc</artifactId>
             <version>${spring.test.mvc.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>2.2.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -99,11 +75,6 @@
         </dependency>
 
         <!-- logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j.version}</version>
-        </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -130,36 +101,11 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8.1</version>
-            </plugin>
-        </plugins>
-    </build>
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <!-- Deps Versions -->
         <servlet-api.version>2.5</servlet-api.version>
-        <junit.version>4.10</junit.version>
-        <easy-spring.version>1.1.0</easy-spring.version>
-        <easy-orm.version>1.1.0</easy-orm.version>
-        <spring.version>3.1.1.RELEASE</spring.version>
-        <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
+        <easyj-orm.version>1.2.0</easyj-orm.version>
+        <json-lib.version>2.4</json-lib.version>
 
         <!-- Validation -->
         <validator.version>4.2.0.Final</validator.version>
@@ -167,39 +113,10 @@
         <validation-api.version>1.0.0.GA</validation-api.version>
 
         <!-- Testing -->
-        <org.hamcrest.version>1.3.RC2</org.hamcrest.version>
-        <commons-lang3.version>3.1</commons-lang3.version>
-        <junit.version>4.10</junit.version>
-        <mockito.version>1.9.0</mockito.version>
-        <httpclient.version>4.1.2</httpclient.version>
+        <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
         <cglib.version>2.2.2</cglib.version>
-        <!-- logging -->
-        <org.slf4j.version>1.6.4</org.slf4j.version>
     </properties>
     
-    <profiles>
-        <profile>
-            <id>deploy</id>
-            <build>
-                <defaultGoal>deploy</defaultGoal>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-          </build>
-        </profile>
-    </profiles>
-
     <repositories>
         <repository>
             <id>spring-maven-snapshot</id>
@@ -210,31 +127,10 @@
             </snapshots>
         </repository>
         <repository>
-            <id>easyj-releases</id>
-            <name>EasyJ Maven Snapshot Repository</name>
-            <url>http://nexus.easyj.org/content/repositories/releases</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>easyj-snapshots</id>
-            <name>EasyJ Maven Snapshot Repository</name>
-            <url>http://nexus.easyj.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <id>easyj</id>
+            <name>Repository for EasyJ lib</name>
+            <url>http://nexus.easyj.org/content/repositories/releases/</url>
         </repository>
     </repositories>
 
-    <distributionManagement>
-        <repository>
-            <id>easy-releases</id>
-            <url>http://nexus.easyj.org/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>easy-snapshots</id>
-            <url>http://nexus.easyj.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>

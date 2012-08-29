@@ -22,7 +22,7 @@ import java.util.Map;
 import org.easyj.rest.exceptions.BadRequestException;
 import org.easyj.rest.exceptions.ConflictException;
 import org.easyj.rest.exceptions.ModelAndViewException;
-import org.easyj.spring.view.EasyView;
+import org.easyj.rest.view.EasyView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;

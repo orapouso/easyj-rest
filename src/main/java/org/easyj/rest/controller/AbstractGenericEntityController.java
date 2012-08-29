@@ -48,14 +48,14 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
 
     private Class<E> entityClass;
 
-    @RequestMapping(value="/create", produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    @RequestMapping(value={"/create", "/edit", "/new"}, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
     public ModelAndView create() throws InstantiationException, IllegalAccessException {
         ModelAndView mav = configMAV(getEntityClass().newInstance(), getCreateViewName());
         
         return modelToForm(mav);
     }
     
-    @RequestMapping("/{id}/edit")
+    @RequestMapping(value="/{id}/edit", produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
     public ModelAndView edit(@PathVariable("id") ID primaryKey) throws InstantiationException, IllegalAccessException {
         ModelAndView mav;
 

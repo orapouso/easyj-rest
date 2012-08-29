@@ -66,6 +66,11 @@ public abstract class AbstractEntityController extends AbstractController {
         if(!getClass().isAnnotationPresent(RequestMapping.class)) return;
         
         entityMapping = getClass().getAnnotation(RequestMapping.class).value()[0];
+
+        postViewName   = "redirect:" + getEntityMapping();
+        putViewName    = "redirect:" + getEntityMapping() + "/{id}";
+        deleteViewName = "redirect:" + getEntityMapping();
+        getViewName    = "{entity}";
         
         ViewMapping annon = getClass().getAnnotation(ViewMapping.class);
         if(annon == null) {
@@ -95,27 +100,19 @@ public abstract class AbstractEntityController extends AbstractController {
                 listViewName = annon.list();
             }
             
-            if(annon.post().isEmpty()) {
-                postViewName = "redirect:" + getEntityMapping();
-            } else {
+            if(!annon.post().isEmpty()) {
                 postViewName = annon.post();
             }
             
-            if(annon.put().isEmpty()) {
-                putViewName = "redirect:" + getEntityMapping() + "/{id}";
-            } else {
+            if(!annon.put().isEmpty()) {
                 putViewName = annon.put();
             }
             
-            if(annon.delete().isEmpty()) {
-                deleteViewName = "redirect:" + getEntityMapping();
-            } else {
+            if(!annon.delete().isEmpty()) {
                 deleteViewName = annon.delete();
             }
 
-            if(annon.get().isEmpty()) {
-                getViewName = "{entity}";
-            } else {
+            if(!annon.get().isEmpty()) {
                 getViewName = annon.get();
             }
         }

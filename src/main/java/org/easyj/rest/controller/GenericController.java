@@ -19,7 +19,7 @@ package org.easyj.rest.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.easyj.spring.view.EasyView;
+import org.easyj.rest.view.EasyView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;

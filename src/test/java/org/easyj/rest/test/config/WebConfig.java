@@ -18,7 +18,7 @@ package org.easyj.rest.test.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.easyj.spring.view.JSONView;
+import org.easyj.rest.view.JSONView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
