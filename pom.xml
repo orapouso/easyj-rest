@@ -3,14 +3,14 @@
     <parent>
         <groupId>org.easyj</groupId>
         <artifactId>easyj</artifactId>
-        <version>1.2.0</version>
-        <relativePath>../parent</relativePath>
+        <version>1.2.1</version>
+        <relativePath>../easyj-parent</relativePath>
     </parent>  
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>easyj-rest</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <name>EasyJ REST ${project.version}</name>
 
     <dependencies>
@@ -73,50 +73,8 @@
             <version>1.2</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- logging -->
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.mail</groupId>
-                    <artifactId>mail</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.jms</groupId>
-                    <artifactId>jms</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
-    <properties>
-        <!-- Deps Versions -->
-        <servlet-api.version>2.5</servlet-api.version>
-        <easyj-orm.version>1.2.0</easyj-orm.version>
-        <json-lib.version>2.4</json-lib.version>
-
-        <!-- Validation -->
-        <validator.version>4.2.0.Final</validator.version>
-        <jpa-api.version>1.0.1.Final</jpa-api.version>
-        <validation-api.version>1.0.0.GA</validation-api.version>
-
-        <!-- Testing -->
-        <spring.test.mvc.version>1.0.0.BUILD-SNAPSHOT</spring.test.mvc.version>
-        <cglib.version>2.2.2</cglib.version>
-    </properties>
-    
     <repositories>
         <repository>
             <id>spring-maven-snapshot</id>

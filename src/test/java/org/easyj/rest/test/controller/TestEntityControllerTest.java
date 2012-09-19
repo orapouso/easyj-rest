@@ -24,6 +24,7 @@ import org.easyj.rest.test.config.ApplicationConfig;
 import org.easyj.rest.test.config.PersistenceJPAConfig;
 import org.easyj.rest.test.config.WebConfig;
 import org.easyj.rest.test.domain.TestEntity;
+import org.easyj.rest.view.EasyView;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -41,8 +42,11 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
 import static org.hamcrest.Matchers.*;
+import org.hamcrest.collection.IsCollectionWithSize;
+import org.hamcrest.collection.IsEmptyCollection;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+import org.springframework.http.MediaType;
 import static org.springframework.test.web.ModelAndViewAssert.*;
 
 /**
@@ -61,7 +65,7 @@ public class TestEntityControllerTest {
     
     private SingleJPAEntityService singleJPAEntityService;
     
-    private static MockMvc mvc;
+    private MockMvc mvc;
     
     private TestEntity baseEntity = new TestEntity();
     private TestEntity postEntity = new TestEntity();
@@ -69,10 +73,12 @@ public class TestEntityControllerTest {
     
     private String firstName = "firstName";
     private String lastName = "lastName";
+    private String username = "username";
+    private String password = "password";
     private String testDateKey = "testDate";
     private String testDate = "20/12/1980";
     
-    private final String BINDING_RESULT_MODEL_NAME = BindingResult.MODEL_KEY_PREFIX + "data";
+    private final String BINDING_RESULT_MODEL_NAME = BindingResult.MODEL_KEY_PREFIX + EasyView.DATA;
         
     @Before
     public void before() {
@@ -97,37 +103,43 @@ public class TestEntityControllerTest {
     /*GET*/
     @Test
     public void whenGETEntityWithNoId_returnAllEntities() throws Exception {
+        String resource = "/entity";
+        String expectedViewName = "entity/list";
+        
         when(singleJPAEntityService.findAll(TestEntity.class))
                 .thenReturn(new ArrayList<TestEntity>())
                 .thenReturn(new ArrayList<TestEntity>(){{add(baseEntity); add(new TestEntity(2l));}});
         
-        mvc.perform(get("/entity"))
+        mvc.perform(get(resource))
            .andExpect(status().isOk())
-           .andExpect(model().attribute("data", empty()))
+           .andExpect(model().attribute(EasyView.DATA, IsEmptyCollection.empty()))
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, nullValue()))
-           .andExpect(view().name("entity/list"));
+           .andExpect(view().name(expectedViewName));
 
-        mvc.perform(get("/entity"))
+        mvc.perform(get(resource))
            .andExpect(status().isOk())
-           .andExpect(model().attribute("data", not(empty())))
-           .andExpect(model().attribute("data", hasSize(2)))
+           .andExpect(model().attribute(EasyView.DATA, not(IsEmptyCollection.empty())))
+           .andExpect(model().attribute(EasyView.DATA, IsCollectionWithSize.hasSize(2)))
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, nullValue()))
-           .andExpect(view().name("entity/list"));
+           .andExpect(view().name(expectedViewName));
     }
     
     @Test
     public void whenGETMissingEntity_return404() throws Exception {
-        mvc.perform(get("/entity/15"))
+        String resource = "/entity/15";
+        
+        mvc.perform(get(resource))
            .andExpect(status().isNotFound());
     }
 
     @Test
     public void whenGETBindError_returnBadRequest() throws Exception {
+        String resource = "/entity/a";
+        
         when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
         
-        MvcResult result = mvc.perform(get("/entity/a"))
+        MvcResult result = mvc.perform(get(resource))
            .andExpect(status().isBadRequest())
-           .andExpect(view().name("errors/badrequest"))
            .andReturn();
 
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BindingResult.MODEL_KEY_PREFIX + "testEntityController", BindingResult.class);
@@ -140,19 +152,22 @@ public class TestEntityControllerTest {
 
     @Test
     public void whenGETExistingEntity_returnEntity() throws Exception {
+        String resource = "/entity/1";
+        String expectedViewName = "entity/entity";
+        
         when(singleJPAEntityService.findOne(TestEntity.class, 1l)).thenReturn(baseEntity);
         
-        MvcResult result = mvc.perform(get("/entity/1"))
+        MvcResult result = mvc.perform(get(resource))
            .andExpect(status().isOk())
-           .andExpect(model().attribute("data", notNullValue()))
+           .andExpect(model().attribute(EasyView.DATA, notNullValue()))
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(view().name("entity/entity"))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
 
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
     }
@@ -160,66 +175,109 @@ public class TestEntityControllerTest {
     /*POST*/
     @Test
     public void whenPOSTWrongURL_returnMethodNotAllowed() throws Exception {
+        String resource = "/entity/1";
+        
         mvc.perform(
-                post("/entity/1")
+                post(resource)
             )
            .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     public void whenPOSTNewEntity_returnEntityWithId() throws Exception {
+        String resource = "/entity";
+        
         when(singleJPAEntityService.save(postEntity)).thenReturn(baseEntity);
         
+        //Test for HTML Requests
+        String expectedViewName = "redirect:/entity";
         MvcResult result = mvc.perform(
-                post("/entity")
+                post(resource)
+               .accept(MediaType.TEXT_HTML)
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isOk())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
-           .andExpect(view().name("redirect:/entity"))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
+        
+        assertThat(returnedEntity, equalTo(baseEntity));
+        
+        //Test for Other Requests
+        expectedViewName = "entity";
+        result = mvc.perform(
+                post(resource)
+               .accept(MediaType.APPLICATION_JSON)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
+               .param(testDateKey, testDate)
+            )
+           .andExpect(status().isOk())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
+        returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
     }
 
     @Test
     public void whenPOSTExistingEntity_returnConflict() throws Exception {
+        String resource = "/entity";
+        String expectedViewName = "entity/edit";
+        
         when(singleJPAEntityService.save(baseEntity)).thenThrow(DataIntegrityViolationException.class);
         
         mvc.perform(
-                post("/entity")
+                post(resource)
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isConflict())
-           .andExpect(view().name("entity/edit"));
+           .andExpect(view().name(expectedViewName));
     }
 
     @Test
     public void whenPOSTWithWrongParams_returnBadRequest() throws Exception {
         BindingResult bindingResult;
         MvcResult result;
+
+        String resource = "/entity";
+        String expectedViewName = "entity/edit";
         
         result = mvc.perform(
-                post("/entity")
+                post(resource)
                .param("id", "1")//@Id should be null on POSTs
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", not(nullValue())))
-           .andExpect(view().name("entity/edit"))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
@@ -232,15 +290,17 @@ public class TestEntityControllerTest {
         assertThat(bindingResult.getFieldError("id"), notNullValue());
 
         result = mvc.perform(
-                post("/entity")
+                post(resource)
                //Not posting firstName a @NotNull param
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", not(nullValue())))
-           .andExpect(view().name("entity/edit"))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
@@ -254,15 +314,17 @@ public class TestEntityControllerTest {
         assertThat(bindingResult.getFieldError(firstName), notNullValue());
 
         result = mvc.perform(
-                post("/entity")
+                post(resource)
                .param(firstName, firstName)
                //Not posting lastName a different @NotNull param
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", not(nullValue())))
-           .andExpect(view().name("entity/edit"))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
@@ -274,28 +336,83 @@ public class TestEntityControllerTest {
         assertThat(bindingResult.getTarget(), instanceOf(TestEntity.class));
         //Missing params should be binded to its own field name
         assertThat(bindingResult.getFieldError(lastName), notNullValue());
+
+        result = mvc.perform(
+                post(resource)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param(username, username)
+               //Not posting password a POST-only @NotNull param 
+               .param(testDateKey, testDate)
+            )
+           .andExpect(status().isBadRequest())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+
+        //Validation errors should be bound to result as FieldError
+        assertEquals(false, bindingResult.hasGlobalErrors());
+        assertEquals(true, bindingResult.hasFieldErrors());
+        assertEquals(1, bindingResult.getFieldErrorCount());
+        assertThat(bindingResult.getTarget(), instanceOf(TestEntity.class));
+        //Missing params should be binded to its own field name
+        assertThat(bindingResult.getFieldError(password), notNullValue());
     }
     
     @Test
     public void whenPOSTWithMissingNullParam_returnEntityWithId() throws Exception {
+        String resource = "/entity";
+
         when(singleJPAEntityService.save(postEntity)).thenReturn(baseEntity);
 
+        //Test for HTML Requests
+        String expectedViewName = "redirect:/entity";
         MvcResult result = mvc.perform(
-                post("/entity")
+                post(resource)
+               .accept(MediaType.TEXT_HTML)
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                //not posting testDate non @NotNull
             )
-            .andExpect(status().isOk())
+           .andExpect(status().isOk())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
-           .andExpect(view().name("redirect:/entity"))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
+        
+        assertThat(returnedEntity, equalTo(baseEntity));
+        
+        //Test for Other Requests
+        expectedViewName = "entity";
+        result = mvc.perform(
+                post(resource)
+               .accept(MediaType.APPLICATION_JSON)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
+               //not posting testDate non @NotNull
+            )
+           .andExpect(status().isOk())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
+        returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
    }
@@ -303,13 +420,15 @@ public class TestEntityControllerTest {
     /*PUT*/
     @Test
     public void whenPUTNewEntity_returnMethodNotAllowed() throws Exception {
+        String resource = "/entity";
+
         mvc.perform(
-                put("/entity")
+                put(resource)
             )
            .andExpect(status().isMethodNotAllowed());
 
         mvc.perform(
-                put("/entity")
+                put(resource)
                .param("id", "1")//even giving the id as a param, mapping does not exists and should abort
             )
            .andExpect(status().isMethodNotAllowed());
@@ -317,24 +436,55 @@ public class TestEntityControllerTest {
 
     @Test
     public void whenPUTEntity_returnEntity() throws Exception {
+        String resource = "/entity/1";
+
         when(singleJPAEntityService.save(putEntity)).thenReturn(putEntity);
         
+        //Test for HTML Requests
+        String expectedViewName = "redirect:/entity/1";
         MvcResult result = mvc.perform(
-                put("/entity/1")
+                put(resource)
+               .accept(MediaType.TEXT_HTML)
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isOk())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
-           .andExpect(view().name("redirect:/entity/1"))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
+        
+        assertThat(returnedEntity, equalTo(baseEntity));
+
+        //Test for Other Requests
+        expectedViewName = "entity/1";
+        result = mvc.perform(
+                put(resource)
+               .accept(MediaType.APPLICATION_JSON)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
+               .param(testDateKey, testDate)
+            )
+           .andExpect(status().isOk())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
+        returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
     }
@@ -344,16 +494,21 @@ public class TestEntityControllerTest {
         BindingResult bindingResult;
         MvcResult result;
         
+        String resource = "/entity/1";
+        String expectedViewName = "entity/edit";
+
         result = mvc.perform(
-                put("/entity/1")
+                put(resource)
                //Not posting firstName a @NotNull param
                .param(lastName, lastName)
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", not(nullValue())))
-           .andExpect(view().name("entity/edit"))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
 
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
@@ -367,15 +522,17 @@ public class TestEntityControllerTest {
         assertThat(bindingResult.getFieldError(firstName), notNullValue());
 
         result = mvc.perform(
-                put("/entity/1")
+                put(resource)
                .param(firstName, firstName)
                //Not posting lastName a different @NotNull param
+               .param(username, username)
+               .param(password, password)
                .param(testDateKey, testDate)
             )
            .andExpect(status().isBadRequest())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", not(nullValue())))
-           .andExpect(view().name("entity/edit"))
+           .andExpect(model().attribute(EasyView.DATA, not(nullValue())))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
@@ -391,66 +548,125 @@ public class TestEntityControllerTest {
     
     @Test
     public void whenPUTWithMissingNullParam_returnEntity() throws Exception {
+        String resource = "/entity/1";
+
         when(singleJPAEntityService.save(putEntity)).thenReturn(putEntity);
 
+        //Test for HTML Requests
+        String expectedViewName = "redirect:/entity/1";
         MvcResult result = mvc.perform(
-                put("/entity/1")
+                put(resource)
+               .accept(MediaType.TEXT_HTML)
                .param(firstName, firstName)
                .param(lastName, lastName)
+               .param(username, username)
+               //not posting password a POST-only @NotNull param
                //not posting testDate non @NotNull
             )
            .andExpect(status().isOk())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
-           .andExpect(view().name("redirect:/entity/1"))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
+        
+        assertThat(returnedEntity, equalTo(baseEntity));
+        
+        //Test for Other Requests
+        expectedViewName = "entity/1";
+        result = mvc.perform(
+                put(resource)
+               .accept(MediaType.APPLICATION_JSON)
+               .param(firstName, firstName)
+               .param(lastName, lastName)
+               .param(username, username)
+               //not posting password a POST-only @NotNull param
+               //not posting testDate non @NotNull
+            )
+           .andExpect(status().isOk())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
+        returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
    }
 
     @Test
     public void whenDELETEEntity_returnEntity() throws Exception {
+        String resource = "/entity/1";
+
         when(singleJPAEntityService.delete(TestEntity.class, 1l)).thenReturn(baseEntity);
 
+        //Test for HTML Requests
+        String expectedViewName = "redirect:/entity";
         MvcResult result = mvc.perform(
-                delete("/entity/1")
+                delete(resource)
+               .accept(MediaType.TEXT_HTML)
             )
            .andExpect(status().isOk())
            .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
-           .andExpect(model().attribute("data", instanceOf(TestEntity.class)))
-           .andExpect(view().name("redirect:/entity"))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
            .andReturn();
         
         BindingResult bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
         assertEquals(false, bindingResult.hasErrors());
 
-        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), "data", TestEntity.class);
+        TestEntity returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
+        
+        assertThat(returnedEntity, equalTo(baseEntity));
+
+        //Test for Other Requests
+        expectedViewName = "entity/1";
+        result = mvc.perform(
+                delete(resource)
+               .accept(MediaType.APPLICATION_JSON)
+            )
+           .andExpect(status().isOk())
+           .andExpect(model().attribute(BINDING_RESULT_MODEL_NAME, not(nullValue())))
+           .andExpect(model().attribute(EasyView.DATA, instanceOf(TestEntity.class)))
+           .andExpect(view().name(expectedViewName))
+           .andReturn();
+        
+        bindingResult = assertAndReturnModelAttributeOfType(result.getModelAndView(), BINDING_RESULT_MODEL_NAME, BindingResult.class);
+        assertEquals(false, bindingResult.hasErrors());
+
+        returnedEntity = assertAndReturnModelAttributeOfType(result.getModelAndView(), EasyView.DATA, TestEntity.class);
         
         assertThat(returnedEntity, equalTo(baseEntity));
    }
 
     @Test
     public void whenDELETEMissingEntity_returnNotFound() throws Exception {
+        String resource = "/entity/1";
+
         mvc.perform(
-                delete("/entity/1")
+                delete(resource)
             )
            .andExpect(status().isNotFound());
     }
 
     @Test
     public void whenDELETEWrongURL_returnMethodNotAllowed() throws Exception {
+        String resource = "/entity";
+
         mvc.perform(
-                delete("/entity")
+                delete(resource)
             )
            .andExpect(status().isMethodNotAllowed());
 
          mvc.perform(
-                delete("/entity")
+                delete(resource)
                .param("id", "1")//even giving the id as a param, mapping does not exists and should abort
             )
            .andExpect(status().isMethodNotAllowed());

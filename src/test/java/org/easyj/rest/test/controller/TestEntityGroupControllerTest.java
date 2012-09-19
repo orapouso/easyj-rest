@@ -37,6 +37,7 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.*;
 import static org.hamcrest.Matchers.*;
+import org.hamcrest.collection.IsEmptyCollection;
 import static org.mockito.Mockito.*;
 
 /**
@@ -78,7 +79,7 @@ public class TestEntityGroupControllerTest {
 
         mvc.perform(get("/entitygroup").accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk())
-           .andExpect(model().attribute("data", empty()))
+           .andExpect(model().attribute("data", IsEmptyCollection.empty()))
            .andExpect(model().attribute("result", nullValue()));
 
     }

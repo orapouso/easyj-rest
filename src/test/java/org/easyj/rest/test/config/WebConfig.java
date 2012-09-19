@@ -25,15 +25,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @Configuration
-@ComponentScan( { "org.easyj.rest.controller" } )
 @EnableWebMvc
-public class WebConfig extends WebMvcConfigurerAdapter {
+@ComponentScan( { "org.easyj.rest.controller" } )
+public class WebConfig {
 	
     @Bean
     public InternalResourceViewResolver internalResourceViewResolver() {

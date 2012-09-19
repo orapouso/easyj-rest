@@ -19,11 +19,12 @@ package org.easyj.rest.controller;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import javax.validation.groups.Default;
 import org.easyj.rest.exceptions.BadRequestException;
 import org.easyj.rest.exceptions.ConflictException;
 import org.easyj.rest.exceptions.ResourceNotFoundException;
-import org.easyj.rest.validation.sequences.POSTSequence;
-import org.easyj.rest.validation.sequences.PUTSequence;
+import org.easyj.rest.validation.groups.POSTChecks;
+import org.easyj.rest.validation.groups.PUTChecks;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
@@ -71,16 +72,30 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     
     @Override
     @RequestMapping(method=RequestMethod.POST)
-    public ModelAndView post(@ModelAttribute("data") @Validated(POSTSequence.class) E entity, BindingResult result) {
+    public ModelAndView post(@ModelAttribute("data") @Validated(value={Default.class, POSTChecks.class}) E entity, BindingResult result) {
         logger.debug("Receiving POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
+
+        return save(entity, result, null);
+    }
+
+    @RequestMapping(method=RequestMethod.POST, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView postHTML(@ModelAttribute("data") @Validated(value={Default.class, POSTChecks.class}) E entity, BindingResult result) {
+        logger.debug("Receiving HTML POST Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, result, getPostViewName());
     }
 
     @Override
     @RequestMapping(value="/{id}", method=RequestMethod.PUT)
-    public ModelAndView put(@ModelAttribute("data") @Validated(PUTSequence.class) E entity, BindingResult result, @PathVariable("id") ID id) {
+    public ModelAndView put(@ModelAttribute("data") @Validated(value={Default.class, PUTChecks.class}) E entity, BindingResult result, @PathVariable("id") ID id) {
         logger.debug("Receiving PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
+
+        return save(entity, result, null);
+    }
+    
+    @RequestMapping(value="/{id}", method=RequestMethod.PUT, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView putHTML(@ModelAttribute("data") @Validated(value={Default.class, PUTChecks.class}) E entity, BindingResult result, @PathVariable("id") ID id) {
+        logger.debug("Receiving HTML PUT Request for: " + entity.getClass().getSimpleName() + ": " + entity);
 
         return save(entity, result, getPutViewName().replace("{id}", id.toString()));
     }
@@ -89,6 +104,15 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
     @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
     public ModelAndView delete(@PathVariable("id") ID primaryKey) {
         logger.debug("Receiving DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
+        
+        E entity = remove(primaryKey);
+        
+        return configMAV(entity);
+    }
+
+    @RequestMapping(value="/{id}", method=RequestMethod.DELETE, produces={MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE, "application/html+xml"})
+    public ModelAndView deleteHTML(@PathVariable("id") ID primaryKey) {
+        logger.debug("Receiving HTML DELETE Request for: " + getEntityClass().getSimpleName() + ": " + primaryKey);
         
         E entity = remove(primaryKey);
         
@@ -132,10 +156,6 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         return entity;
     }
     
-    protected ModelAndView save(E entity, BindingResult result) {
-        return save(entity, result, null);
-    }
-    
     protected ModelAndView save(E entity, BindingResult result, String viewName) {
         if(entity == null || result == null) {
             logger.debug("ERROR: Cannot save: some parameter is null entity[{}], result[{}]", 
@@ -160,7 +180,7 @@ public abstract class AbstractGenericEntityController<E extends Serializable, ID
         }
 
     }
-
+    
     protected E persist(E entity) {
         ModelAndView mav = configMAV(entity, getEditViewName());
         if(entity == null) {

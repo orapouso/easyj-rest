@@ -53,6 +53,12 @@ public class TestEntity implements Serializable {
     @NotNull
     @Size(max=15)
     private String lastName;
+    @NotNull
+    @Size(max=15)
+    private String username;
+    @NotNull(groups={POSTChecks.class})
+    @Size(max=15)
+    private String password;
     @Temporal(TemporalType.TIMESTAMP)
     private Date testDate;
     @ManyToOne
@@ -87,6 +93,22 @@ public class TestEntity implements Serializable {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Date getTestDate() {
